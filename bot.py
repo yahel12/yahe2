@@ -44,7 +44,7 @@ class Bot(Client):
         stats = await clientDB.command('dbStats')
         #calculating the free db space from bytes to MB
         free_dbSize = round(512-((stats['dataSize']/(1024*1024))+(stats['indexSize']/(1024*1024))), 2)
-        if SECONDDB_URI and free_dbSize<10: #if the primary db have less than 10MB left, use second DB.
+        if SECONDDB_URI and free_dbSize<100: #if the primary db have less than 10MB left, use second DB.
             tempDict["indexDB"] = SECONDDB_URI
             logging.info(f"Since Primary DB have only {free_dbSize} MB left, Secondary DB will be used to store datas.")
         elif SECONDDB_URI is None:
