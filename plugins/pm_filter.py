@@ -938,6 +938,8 @@ async def cb_handler(client: Client, query: CallbackQuery):
             
     elif query.data == "start":
         buttons = [[
+                    InlineKeyboardButton('➕ ΛDD 𝖬Ξ ϮԾ 𝖸ԾUR 𝖦RԾUᎮ ➕', url=f"http://t.me/{temp.U_NAME}?startgroup=true")
+                ],[
                     InlineKeyboardButton('♻️ HΞLᎮ', callback_data='help'),
                     InlineKeyboardButton('💫 ΛBԾUϮ', callback_data='about'),
                     InlineKeyboardButton('🧩 MԾVIΞ GRԾUᎮ', url=GRP_LNK)
