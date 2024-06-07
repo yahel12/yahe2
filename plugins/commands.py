@@ -22,8 +22,9 @@ BATCH_FILES = {}
 async def start(client, message):
     if message.chat.type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
         buttons = [[
-                    InlineKeyboardButton('♻️ HΞLᎮ ♻️', callback_data='help'),
-                    InlineKeyboardButton('💫 ΛBԾUϮ 💫', callback_data='about'),
+                    InlineKeyboardButton('♻️ HΞLᎮ', callback_data='help'),
+                    InlineKeyboardButton('💫 ΛBԾUϮ', callback_data='about'),
+                    InlineKeyboardButton('⌬  MԾVIΞ GRԾUᎮ', url=GRP_LNK)
                 ],[
                     InlineKeyboardButton('🍿 JԾIN UᎮDΛTΞS CHΛNNΞL 🍿', url=CHNL_LNK)
                   ]]
@@ -45,6 +46,7 @@ async def start(client, message):
         buttons = [[
                     InlineKeyboardButton('♻️ HΞLᎮ ♻️', callback_data='help'),
                     InlineKeyboardButton('💫 ΛBԾUϮ 💫', callback_data='about'),
+                    InlineKeyboardButton('⌬ MԾVIΞ GRԾUᎮ', url=GRP_LNK)
                 ],[
                     InlineKeyboardButton('🍿 JԾIN UᎮDΛTΞS CHΛNNΞL 🍿', url=CHNL_LNK)
                   ]]
@@ -58,12 +60,12 @@ async def start(client, message):
         try:
             invite_link = await client.create_chat_invite_link(int(AUTH_CHANNEL))
         except ChatAdminRequired:
-            logger.error("Mᴀᴋᴇ sᴜʀᴇ Bᴏᴛ ɪs ᴀᴅᴍɪɴ ɪɴ Fᴏʀᴄᴇsᴜʙ ᴄʜᴀɴɴᴇʟ")
+            logger.error("MAKE SURE BOT IS ADMIN IN FORCESUB CHANNEL")
             return
         btn = [
             [
                 InlineKeyboardButton(
-                    "❆ Jᴏɪɴ Oᴜʀ Bᴀᴄᴋ-Uᴘ Cʜᴀɴɴᴇʟ ❆", url=invite_link.invite_link
+                    "UPDATES CHANNEL 2 ✨", url=invite_link.invite_link
                 )
             ]
         ]
@@ -84,16 +86,11 @@ async def start(client, message):
         return
     if len(message.command) == 2 and message.command[1] in ["subscribe", "error", "okay", "help"]:
         buttons = [[
-                    InlineKeyboardButton('⤬ Aᴅᴅ Mᴇ Tᴏ Yᴏᴜʀ Gʀᴏᴜᴘ ⤬', url=f'http://t.me/{temp.U_NAME}?startgroup=true')
+                    InlineKeyboardButton('♻️ HΞLᎮ ♻️', callback_data='help'),
+                    InlineKeyboardButton('💫 ΛBԾUϮ 💫', callback_data='about'),
+                    InlineKeyboardButton('⌬ MԾVIΞ GRԾUᎮ', url=GRP_LNK)
                 ],[
-                    InlineKeyboardButton('♚ Bᴏᴛ Oᴡɴᴇʀ', callback_data="owner_info"),
-                    InlineKeyboardButton('⌬ Sᴜᴘᴘᴏʀᴛ Gʀᴏᴜᴘ', url=GRP_LNK)
-                ],[
-                    InlineKeyboardButton('〄 Hᴇʟᴘ', callback_data='help'),
-                    InlineKeyboardButton('⍟ Aʙᴏᴜᴛ', callback_data='about'),
-                    InlineKeyboardButton('Iɴʟɪɴᴇ Sᴇᴀʀᴄʜ ☌', switch_inline_query_current_chat='')
-                ],[
-                    InlineKeyboardButton('✇ Jᴏɪɴ Uᴘᴅᴀᴛᴇs Cʜᴀɴɴᴇʟ ✇', url=CHNL_LNK)
+                    InlineKeyboardButton('🍿 JԾIN UᎮDΛTΞS CHΛNNΞL 🍿', url=CHNL_LNK)
                   ]]
         reply_markup = InlineKeyboardMarkup(buttons)
         await message.reply_photo(
@@ -145,9 +142,7 @@ async def start(client, message):
                         [
                          [
                           InlineKeyboardButton('Sᴜᴘᴘᴏʀᴛ Gʀᴏᴜᴘ', url=GRP_LNK),
-                          InlineKeyboardButton('Uᴘᴅᴀᴛᴇs Cʜᴀɴɴᴇʟ', url=CHNL_LNK)
-                       ],[
-                          InlineKeyboardButton("Bᴏᴛ Oᴡɴᴇʀ", url="t.me/creatorbeatz")
+                          InlineKeyboardButton('UᎮDΛTΞS CHΛNNΞL', url=CHNL_LNK) 
                          ]
                         ]
                     )
@@ -164,9 +159,7 @@ async def start(client, message):
                         [
                          [
                           InlineKeyboardButton('Sᴜᴘᴘᴏʀᴛ Gʀᴏᴜᴘ', url=GRP_LNK),
-                          InlineKeyboardButton('Uᴘᴅᴀᴛᴇs Cʜᴀɴɴᴇʟ', url=CHNL_LNK)
-                       ],[
-                          InlineKeyboardButton("Bᴏᴛ Oᴡɴᴇʀ", url="t.me/creatorbeatz")
+                          InlineKeyboardButton('UᎮDΛTΞS CHΛNNΞL', url=CHNL_LNK)
                          ]
                         ]
                     )
