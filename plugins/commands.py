@@ -141,7 +141,7 @@ async def start(client, message):
                     reply_markup=InlineKeyboardMarkup(
                         [
                          [
-                          InlineKeyboardButton('Sᴜᴘᴘᴏʀᴛ Gʀᴏᴜᴘ', url=GRP_LNK),
+                          InlineKeyboardButton('MԾVIΞ GRԾUᎮ', url=GRP_LNK),
                           InlineKeyboardButton('UᎮDΛTΞS CHΛNNΞL', url=CHNL_LNK) 
                          ]
                         ]
@@ -158,7 +158,7 @@ async def start(client, message):
                     reply_markup=InlineKeyboardMarkup(
                         [
                          [
-                          InlineKeyboardButton('Sᴜᴘᴘᴏʀᴛ Gʀᴏᴜᴘ', url=GRP_LNK),
+                          InlineKeyboardButton('MԾVIΞ GRԾUᎮ', url=GRP_LNK),
                           InlineKeyboardButton('UᎮDΛTΞS CHΛNNΞL', url=CHNL_LNK)
                          ]
                         ]
@@ -275,10 +275,8 @@ async def start(client, message):
                 reply_markup=InlineKeyboardMarkup(
                     [
                      [
-                      InlineKeyboardButton('Sᴜᴘᴘᴏʀᴛ Gʀᴏᴜᴘ', url=GRP_LNK),
-                      InlineKeyboardButton('Uᴘᴅᴀᴛᴇs Cʜᴀɴɴᴇʟ', url=CHNL_LNK)
-                   ],[
-                      InlineKeyboardButton("Bᴏᴛ Oᴡɴᴇʀ", url="t.me/creatorbeatz")
+                      InlineKeyboardButton('MԾVIΞ GRԾUᎮ', url=GRP_LNK),
+                      InlineKeyboardButton('UᎮDΛTΞS CHΛNNΞL', url=CHNL_LNK)
                      ]
                     ]
                 )
@@ -305,7 +303,7 @@ async def start(client, message):
     if CUSTOM_FILE_CAPTION:
         try:
             f_caption=CUSTOM_FILE_CAPTION.format(file_name= '' if title is None else title, file_size='' if size is None else size, file_caption='' if f_caption is None else f_caption)
-        except Exception as e:
+        ept Exception as e:
             logger.exception(e)
             f_caption=f_caption
     if f_caption is None:
@@ -329,10 +327,8 @@ async def start(client, message):
         reply_markup=InlineKeyboardMarkup(
             [
              [
-              InlineKeyboardButton('Sᴜᴘᴘᴏʀᴛ Gʀᴏᴜᴘ', url=GRP_LNK),
-              InlineKeyboardButton('Uᴘᴅᴀᴛᴇs Cʜᴀɴɴᴇʟ', url=CHNL_LNK)
-           ],[
-              InlineKeyboardButton("Bᴏᴛ Oᴡɴᴇʀ", url="t.me/creatorbeatz")
+              InlineKeyboardButton('MԾVIΞ GRԾUᎮ', url=GRP_LNK),
+              InlineKeyboardButton('UᎮDΛTΞS CHΛNNΞL', url=CHNL_LNK)
              ]
             ]
         )
