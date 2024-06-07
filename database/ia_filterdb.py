@@ -74,7 +74,7 @@ async def save_file(media):
     file_name = re.sub(r"(_|\-|\.|\+)", " ", str(media.file_name))
     try:
         if await Media.count_documents({'file_id': file_id}, limit=1):
-            logger.warning(f'{getattr(media, "file_name", "NO_FILE")} is already saved in primary DB !')
+            logger.warning(f'{getattr(media, "file_size", "NO_FILE")} is already saved in primary DB !')
             return False, 0
         file = saveMedia(
             file_id=file_id,
