@@ -26,7 +26,7 @@ async def start(client, message):
                 ],[
                     InlineKeyboardButton('♻️ HΞLᎮ', callback_data='help'),
                     InlineKeyboardButton('💫 ΛBԾUϮ', callback_data='about'),
-                    InlineKeyboardButton('⌬  MԾVIΞ GRԾUᎮ', url=GRP_LNK)
+                    InlineKeyboardButton('⌬ GRԾUᎮ', url=GRP_LNK)
                 ],[
                     InlineKeyboardButton('🍿 JԾIN UᎮDΛTΞS CHΛNNΞL 🍿', url=CHNL_LNK)
                   ]]
@@ -50,7 +50,7 @@ async def start(client, message):
                 ],[
                     InlineKeyboardButton('♻️ HΞLᎮ', callback_data='help'),
                     InlineKeyboardButton('💫 ΛBԾUϮ', callback_data='about'),
-                    InlineKeyboardButton('⌬ MԾVIΞ GRԾUᎮ', url=GRP_LNK)
+                    InlineKeyboardButton('⌬ GRԾUᎮ', url=GRP_LNK)
                 ],[
                     InlineKeyboardButton('🍿 JԾIN UᎮDΛTΞS CHΛNNΞL 🍿', url=CHNL_LNK)
                   ]]
@@ -94,7 +94,7 @@ async def start(client, message):
                 ],[
                     InlineKeyboardButton('♻️ HΞLᎮ', callback_data='help'),
                     InlineKeyboardButton('💫 ΛBԾUϮ', callback_data='about'),
-                    InlineKeyboardButton('⌬ MԾVIΞ GRԾUᎮ', url=GRP_LNK)
+                    InlineKeyboardButton('⌬ GRԾUᎮ', url=GRP_LNK)
                 ],[
                     InlineKeyboardButton('🍿 JԾIN UᎮDΛTΞS CHΛNNΞL 🍿', url=CHNL_LNK)
                   ]]
