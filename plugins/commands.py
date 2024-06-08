@@ -28,7 +28,7 @@ async def start(client, message):
                     InlineKeyboardButton('💫 ΛBԾUϮ', callback_data='about'),
                     InlineKeyboardButton('⌬ GRԾUᎮ', url=GRP_LNK)
                 ],[
-                    InlineKeyboardButton('🍿 JԾIN UᎮDΛTΞS CHΛNNΞL 🍿', url=CHNL_LNK)
+                    InlineKeyboardButton('🍿 JԾIN ԾUR UᎮDΛTΞS CHΛNNΞL 🍿', url=CHNL_LNK)
                   ]]
         reply_markup = InlineKeyboardMarkup(buttons)
         await message.reply(script.START_TXT.format(message.from_user.mention, temp.U_NAME, temp.B_NAME),
@@ -52,7 +52,7 @@ async def start(client, message):
                     InlineKeyboardButton('💫 ΛBԾUϮ', callback_data='about'),
                     InlineKeyboardButton('⌬ GRԾUᎮ', url=GRP_LNK)
                 ],[
-                    InlineKeyboardButton('🍿 JԾIN UᎮDΛTΞS CHΛNNΞL 🍿', url=CHNL_LNK)
+                    InlineKeyboardButton('🍿 JԾIN ԾUR UᎮDΛTΞS CHΛNNΞL 🍿', url=CHNL_LNK)
                   ]]
         reply_markup = InlineKeyboardMarkup(buttons)
         await message.reply(script.START_TXT.format(message.from_user.mention, temp.U_NAME, temp.B_NAME),
@@ -69,7 +69,7 @@ async def start(client, message):
         btn = [
             [
                 InlineKeyboardButton(
-                    "UPDATES CHANNEL 2 ✨", url=invite_link.invite_link
+                    "🍿 JԾIN ԾUR UᎮDΛTΞ CHΛNNΞLS 🍿", url=invite_link.invite_link
                 )
             ]
         ]
@@ -83,7 +83,7 @@ async def start(client, message):
                 btn.append([InlineKeyboardButton("↻ Tʀʏ Aɢᴀɪɴ", url=f"https://t.me/{temp.U_NAME}?start={message.command[1]}")])
         await client.send_message(
             chat_id=message.from_user.id,
-            text="**Yᴏᴜ ᴀʀᴇ ɴᴏᴛ ɪɴ ᴏᴜʀ Bᴀᴄᴋ-ᴜᴘ ᴄʜᴀɴɴᴇʟ ɢɪᴠᴇɴ ʙᴇʟᴏᴡ sᴏ ʏᴏᴜ ᴅᴏɴ'ᴛ ɢᴇᴛ ᴛʜᴇ ᴍᴏᴠɪᴇ ғɪʟᴇ...\n\nIғ ʏᴏᴜ ᴡᴀɴᴛ ᴛʜᴇ ᴍᴏᴠɪᴇ ғɪʟᴇ, ᴄʟɪᴄᴋ ᴏɴ ᴛʜᴇ '❆ Jᴏɪɴ Oᴜʀ Bᴀᴄᴋ-Uᴘ Cʜᴀɴɴᴇʟ ❆' ʙᴜᴛᴛᴏɴ ʙᴇʟᴏᴡ ᴀɴᴅ ᴊᴏɪɴ ᴏᴜʀ ʙᴀᴄᴋ-ᴜᴘ ᴄʜᴀɴɴᴇʟ, ᴛʜᴇɴ ᴄʟɪᴄᴋ ᴏɴ ᴛʜᴇ '↻ Tʀʏ Aɢᴀɪɴ' ʙᴜᴛᴛᴏɴ ʙᴇʟᴏᴡ...\n\nTʜᴇɴ ʏᴏᴜ ᴡɪʟʟ ɢᴇᴛ ᴛʜᴇ ᴍᴏᴠɪᴇ ғɪʟᴇs...**",
+            text="**YOU ARE NOT IN OUR UPDATE CHANNELS GIVEN BELOW, SO YOU WON'T GET THE MOVIE FILE...\n\nIF YOU WANT THE MOVIE FILE, JOIN @lordshipmovies and\n@Hislordship_Movies\n\THE CLICK ON THE '↻ TRY AGAIN' BUTTON BELOW...\n\nTHEN YOU WILL GET THE MOVIE FILES...**",
             reply_markup=InlineKeyboardMarkup(btn),
             parse_mode=enums.ParseMode.MARKDOWN
             )
@@ -96,7 +96,7 @@ async def start(client, message):
                     InlineKeyboardButton('💫 ΛBԾUϮ', callback_data='about'),
                     InlineKeyboardButton('⌬ GRԾUᎮ', url=GRP_LNK)
                 ],[
-                    InlineKeyboardButton('🍿 JԾIN UᎮDΛTΞS CHΛNNΞL 🍿', url=CHNL_LNK)
+                    InlineKeyboardButton('🍿 JԾIN ԾUR UᎮDΛTΞS CHΛNNΞL 🍿', url=CHNL_LNK)
                   ]]
         reply_markup = InlineKeyboardMarkup(buttons)
         await message.reply(script.START_TXT.format(message.from_user.mention, temp.U_NAME, temp.B_NAME),
