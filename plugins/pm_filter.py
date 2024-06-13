@@ -428,25 +428,18 @@ async def cb_handler(client: Client, query: CallbackQuery):
         if AUTH_CHANNEL and not await is_subscribed(client, query):
             await query.answer("𝖨 𝖫𝗂𝗄𝖾 𝖸𝗈𝗎𝗋 𝖲𝗆𝖺𝗋𝗍𝗇𝖾𝗌𝗌, 𝖡𝗎𝗍 𝖣𝗈𝗇'𝗍 𝖡𝖾 𝖮𝗏𝖾𝗋𝗌𝗆𝖺𝗋𝗍 😏\n𝖩𝗈𝗂𝗇 the 𝖴𝗉𝖽𝖺𝗍𝖾 𝖢𝗁𝖺𝗇𝗇𝖾𝗅 𝖿𝗂𝗋𝗌𝗍", show_alert=True)
             return
+
         ident, file_id = query.data.split("#")
-        if file_id == "send_all":
-            send_files = temp.SEND_ALL_TEMP.get(query.from_user.id)
-            is_over = await send_all(client, query.from_user.id, send_files, ident)
-            if is_over == 'done':
-                return await query.answer(f"Hᴇʏ {query.from_user.first_name}, Aʟʟ ғɪʟᴇs ᴏɴ ᴛʜɪs ᴘᴀɢᴇ ʜᴀs ʙᴇᴇɴ sᴇɴᴛ sᴜᴄᴄᴇssғᴜʟʟʏ ᴛᴏ ʏᴏᴜʀ PM !", show_alert=True)
-            elif is_over == 'fsub':
-                return await query.answer("Hᴇʏ, Yᴏᴜ ʜᴀᴠᴇ ɴᴏᴛ ᴊᴏɪɴᴇᴅ ɪɴ ᴍʏ ʙᴀᴄᴋ ᴜᴘ ᴄʜᴀɴɴᴇʟ. Cʜᴇᴄᴋ ᴍʏ PM ᴛᴏ ᴊᴏɪɴ ᴀɴᴅ ɢᴇᴛ ғɪʟᴇs !", show_alert=True)
-            elif is_over == 'verify':
-                return await query.answer("Hᴇʏ, Yᴏᴜ ʜᴀᴠᴇ ɴᴏᴛ ᴠᴇʀɪғɪᴇᴅ ᴛᴏᴅᴀʏ. Yᴏᴜ ʜᴀᴠᴇ ᴛᴏ ᴠᴇʀɪғʏ ᴛᴏ ᴄᴏɴᴛɪɴᴜᴇ. Cʜᴇᴄᴋ ᴍʏ PM ᴛᴏ ᴠᴇʀɪғʏ ᴀɴᴅ ɢᴇᴛ ғɪʟᴇs !", show_alert=True)
-            else:
-                return await query.answer(f"Eʀʀᴏʀ: {is_over}", show_alert=True)
+
         files_ = await get_file_details(file_id)
         if not files_:
             return await query.answer('Nᴏ sᴜᴄʜ ғɪʟᴇ ᴇxɪsᴛ.')
+    
         files = files_[0]
         title = files.file_name
         size = get_size(files.file_size)
         f_caption = files.caption
+
         if CUSTOM_FILE_CAPTION:
             try:
                 f_caption = CUSTOM_FILE_CAPTION.format(file_name='' if title is None else title,
@@ -455,36 +448,17 @@ async def cb_handler(client: Client, query: CallbackQuery):
             except Exception as e:
                 logger.exception(e)
                 f_caption = f_caption
+
         if f_caption is None:
             f_caption = f"{title}"
+
         await query.answer()
-        if IS_VERIFY and not await check_verification(client, query.from_user.id):
-            btn = [[
-                InlineKeyboardButton("Vᴇʀɪғʏ", url=await get_token(client, query.from_user.id, f"https://telegram.me/{temp.U_NAME}?start=", file_id)),
-                InlineKeyboardButton("Hᴏᴡ Tᴏ Vᴇʀɪғʏ", url=HOW_TO_VERIFY)
-            ]]
-            await client.send_message(
-                chat_id=query.from_user.id,
-                text="<b>Yᴏᴜ ᴀʀᴇ ɴᴏᴛ ᴠᴇʀɪғɪᴇᴅ!\nKɪɴᴅʟʏ ᴠᴇʀɪғʏ ᴛᴏ ᴄᴏɴᴛɪɴᴜᴇ Sᴏ ᴛʜᴀᴛ ʏᴏᴜ ᴄᴀɴ ɢᴇᴛ ᴀᴄᴄᴇss ᴛᴏ ᴜɴʟɪᴍɪᴛᴇᴅ ᴍᴏᴠɪᴇs ᴜɴᴛɪʟ 12 ʜᴏᴜʀs ғʀᴏᴍ ɴᴏᴡ !</b>",
-                protect_content=True if ident == 'checksubp' else False,
-                disable_web_page_preview=True,
-                parse_mode=enums.ParseMode.HTML,
-                reply_markup=InlineKeyboardMarkup(btn)
-            )
-            return
+
         await client.send_cached_media(
             chat_id=query.from_user.id,
             file_id=file_id,
             caption=f_caption,
-            protect_content=True if ident == 'checksubp' else False,
-            reply_markup=InlineKeyboardMarkup(
-                [
-                 [
-                  InlineKeyboardButton('MԾVIΞ GRԾUᎮ', url=GRP_LNK),
-                  InlineKeyboardButton('UᎮDΛTΞS CHΛNNΞL', url=CHNL_LNK)
-                 ]
-                ]
-            )
+            protect_content=True if ident == 'checksubp' else False
         )
     elif query.data == "pages":
         await query.answer()
