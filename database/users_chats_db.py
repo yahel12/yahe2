@@ -1,7 +1,7 @@
 # https://github.com/odysseusmax/animated-lamp/blob/master/bot/database/database.py
 import motor.motor_asyncio
 from sample_info import tempDict
-from info import DATABASE_NAME, DATABASE_URI, IMDB, IMDB_TEMPLATE, MELCOW_NEW_USERS, P_TTI_SHOW_OFF, SINGLE_BUTTON, SPELL_CHECK_REPLY, PROTECT_CONTENT, AUTO_DELETE, MAX_BTN, AUTO_FFILTER, SHORTLINK_API, SHORTLINK_URL, IS_SHORTLINK, SECONDDB_URI
+from info import DATABASE_NAME, DATABASE_URI, IMDB, IMDB_TEMPLATE, MELCOW_NEW_USERS, P_TTI_SHOW_OFF, SINGLE_BUTTON, SPELL_CHECK_REPLY, PROTECT_CONTENT, AUTO_DELETE, MAX_BTN, AUTO_FFILTER, SECONDDB_URI
 
 class Database:
     
@@ -37,31 +37,6 @@ class Database:
                 reason="",
             ),
         )
-    
-    async def update_verification(self, id, date, time):
-        status = {
-            'date': str(date),
-            'time': str(time)
-        }
-        user = await self.col.find_one({'id':int(id)})
-        if not user:
-            await self.col2.update_one({'id': int(id)}, {'$set': {'verification_status': status}})
-        else:
-            await self.col.update_one({'id': int(id)}, {'$set': {'verification_status': status}})
-
-    async def get_verified(self, id):
-        default = {
-            'date': "1999-12-31",
-            'time': "23:59:59"
-        }
-        user = await self.col.find_one({'id': int(id)})
-        if user:
-            return user.get("verification_status", default)
-        else:
-            user = await self.col2.find_one({'id': int(id)})
-            if user:
-                return user.get("verification_status", default)
-        return default
     
     async def add_user(self, id, name):
         user = self.new_user(id, name)
@@ -187,10 +162,7 @@ class Database:
             'auto_delete': AUTO_DELETE,
             'auto_ffilter': AUTO_FFILTER,
             'max_btn': MAX_BTN,
-            'template': IMDB_TEMPLATE,
-            'shortlink': SHORTLINK_URL,
-            'shortlink_api': SHORTLINK_API,
-            'is_shortlink': IS_SHORTLINK
+            'template': IMDB_TEMPLATE
         }
         chat = await self.grp.find_one({'id':int(id)})
         if chat:
