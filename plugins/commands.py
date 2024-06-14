@@ -14,7 +14,7 @@ from info import (
 )
 from utils import (
     get_settings, get_size, is_subscribed, save_group_settings,
-    temp, verify_user, check_token
+    temp
 )
 from database.connections_mdb import active_connection
 import re
