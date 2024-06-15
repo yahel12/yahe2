@@ -179,7 +179,7 @@ async def auto_filter(client, msg, spoll=False):
 
     if offset != "":
         key = f"{message.chat.id}-{message.id}"
-        temp.GP_BUTTONS[key] = search
+        BUTTONS[key] = search
         req = message.from_user.id if message.from_user else 0
         btn.append(
             [InlineKeyboardButton(text=f"📑 ᴩᴀɢᴇꜱ 1/{math.ceil(int(total_results) / 6)}", callback_data="pages"),
