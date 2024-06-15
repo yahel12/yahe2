@@ -235,6 +235,24 @@ async def cb_handler(client: Client, query: CallbackQuery):
             alert = alerts[int(i)]
             alert = alert.replace("\\n", "\n").replace("\\t", "\t")
             await query.answer(alert, show_alert=True)
+    if query.data.startswith("pmfile"):
+        ident, file_id = query.data.split("#")
+        files_ = await get_file_details(file_id)
+        if not files_: return await query.answer('Comrade No Such File Exist.')
+        files = files_[0]
+        title = files.file_name
+        size = get_size(files.file_size)
+        f_caption = f_caption = f"{title}"
+        if CUSTOM_FILE_CAPTION:
+            try: f_caption = CUSTOM_FILE_CAPTION.format(mention=query.from_user.mention, file_name='' if title is None else title, file_size='' if size is None else size, file_caption='' if f_caption is None else f_caption)                                                                                                      
+            except Exception as e: logger.exception(e)
+        try:                  
+            if AUTH_CHANNEL and not await is_subscribed(client, query):
+                return await query.answer(url=f"https://t.me/{temp.U_NAME}?start={ident}_{file_id}")
+            else:
+                await client.send_cached_media(chat_id=query.from_user.id, file_id=file_id, caption=f_caption, protect_content=True if ident == "pmfilep" else False)                       
+        except Exception as e:
+            await query.answer(f"⚠️ Eʀʀᴏʀ {e}", show_alert=True)
     if query.data.startswith("file"):
         clicked = query.from_user.id
         try:
