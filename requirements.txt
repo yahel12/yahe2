@@ -1,4 +1,4 @@
-pyrogram
+git+https://github.com/Godstime315/pyrogram
 tgcrypto
 pymongo[srv]==3.12.3
 motor==2.5.1
