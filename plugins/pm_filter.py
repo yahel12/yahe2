@@ -28,7 +28,7 @@ SPELL_CHECK = {}
 
 
 @Client.on_message(filters.text & filters.private & filters.incoming)
-async def give_filter_pm(client, message):
+async def give_filter(client, message):
     glob = await global_filters(client, message)
     if not glob:
         await pm_auto_Filter(client, message)
