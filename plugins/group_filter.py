@@ -21,7 +21,7 @@ BUTTONS = {}
 SPELL_CHECK = {}
 
 @Client.on_message(filters.text & filters.incoming & filters.group)
-async def give_filter(client, message: Message):
+async def give_filter_group(client, message: Message):
     glob = await global_filters(client, message)
     if not glob:
         manual = await manual_filters(client, message)
