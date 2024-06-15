@@ -10,11 +10,11 @@ from pyrogram.errors.exceptions.bad_request_400 import MediaEmpty, PhotoInvalidD
 from Script import script
 from database.connections_mdb import active_connection, all_connections, delete_connection, if_active, make_active, \
     make_inactive
-from info import ADMINS, AUTH_CHANNEL, AUTH_USERS, CUSTOM_FILE_CAPTION, MSG_ALRT, GRP_LNK, CHNL_LNK, LOG_CHANNEL, MAX_B_TN
+from info import MAX_B_TN
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaPhoto
 from pyrogram import Client, filters, enums
 from pyrogram.errors import FloodWait, UserIsBlocked, MessageNotModified, PeerIdInvalid
-from utils import get_size, is_subscribed, get_poster, temp, get_settings, save_group_settings
+from utils import get_size, get_poster, temp, get_settings
 from database.users_chats_db import db
 from database.ia_filterdb import Media, Media2, get_file_details, get_search_results, get_bad_files, db as clientDB, db2 as clientDB2
 from plugins.group_filter import global_filters
@@ -160,7 +160,7 @@ async def pm_AutoFilter(client, msg, pmspoll=False):
             return
     else:
         message = msg.message.reply_to_message  # msg will be callback query
-        search, files, offset, total_results = spoll
+        search, files, offset, total_results = pmspoll
         settings = await get_settings(message.chat.id)
 
     temp.KEYWORD[message.from_user.id] = search
@@ -274,7 +274,7 @@ async def pm_AutoFilter(client, msg, pmspoll=False):
         fek = await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
         await handle_auto_delete(fek, message, settings)
 
-    if spoll:
+    if pmspoll:
         await msg.message.delete()
 
 async def handle_auto_delete(msg, original_msg, settings):
