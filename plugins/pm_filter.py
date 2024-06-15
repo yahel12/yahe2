@@ -36,21 +36,11 @@ BUTTONS = {}
 SPELL_CHECK = {}
 
 
-@Client.on_message(filters.text & filters.incoming)
-async def give_filter(client, message):
+@Client.on_message(filters.text & filters.private & filters.incoming)
+async def give_filter_pm(client, message):
     glob = await global_filters(client, message)
     if not glob:
-        manual = await manual_filters(client, message)
-        if not manual:
-            settings = await get_settings(message.chat.id)
-            if settings.get('auto_ffilter', False):
-                await auto_filter(client, message)
-            else:
-                grpid = await active_connection(str(message.from_user.id))
-                await save_group_settings(grpid, 'auto_ffilter', True)
-                settings = await get_settings(message.chat.id)
-                if settings.get('auto_ffilter', False):
-                    await auto_filter(client, message)
+        await pm_auto_Filter(client, message)
 
 @Client.on_callback_query(filters.regex(r"^next"))
 async def next_page(bot, query):
