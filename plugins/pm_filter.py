@@ -42,8 +42,8 @@ async def give_filter_pm(client, message):
     if not glob:
         await pm_auto_Filter(client, message)
 
-@Client.on_callback_query(filters.regex(r"^next"))
-async def next_page(bot, query):
+@Client.on_callback_query(filters.regex(r"^pmnext"))
+async def pm_next_page(bot, query):
     ident, req, key, offset = query.data.split("_")
     if int(req) not in [query.from_user.id, 0]:
         return await query.answer(script.ALRT_TXT.format(query.from_user.first_name), show_alert=True)
@@ -72,18 +72,18 @@ async def next_page(bot, query):
     btn = [
         [
             InlineKeyboardButton(
-                text=f"➲ {get_size(file.file_size)} || {file.file_name}", callback_data=f'files#{file.file_id}'
+                text=f"➲ {get_size(file.file_size)} || {file.file_name}", callback_data=f'pmfiles#{file.file_id}'
             ),
         ]
         for file in files
     ] if settings.get('button', False) else [
         [
             InlineKeyboardButton(
-                text=f"{file.file_name}", callback_data=f'files#{file.file_id}'
+                text=f"{file.file_name}", callback_data=f'pmfiles#{file.file_id}'
             ),
             InlineKeyboardButton(
                 text=f"{get_size(file.file_size)}",
-                callback_data=f'files_#{file.file_id}',
+                callback_data=f'pmfiles_#{file.file_id}',
             ),
         ]
         for file in files
@@ -103,16 +103,16 @@ async def next_page(bot, query):
 
     if n_offset == 0:
         btn.append(
-            [InlineKeyboardButton("«« 𝕻𝖗𝖊𝖛𝖎𝖔𝖚𝖘", callback_data=f"next_{req}_{key}_{off_set}"), InlineKeyboardButton(f"{math.ceil(int(offset) / max_b_tn_value) + 1} / {math.ceil(total / max_b_tn_value)}", callback_data="pages")]
+            [InlineKeyboardButton("«« 𝕻𝖗𝖊𝖛𝖎𝖔𝖚𝖘", callback_data=f"pmnext_{req}_{key}_{off_set}"), InlineKeyboardButton(f"{math.ceil(int(offset) / max_b_tn_value) + 1} / {math.ceil(total / max_b_tn_value)}", callback_data="pages")]
         )
     elif off_set is None:
         btn.append([InlineKeyboardButton("📑 ᴩᴀɢᴇꜱ", callback_data="pages"), InlineKeyboardButton(f"{math.ceil(int(offset) / max_b_tn_value) + 1} / {math.ceil(total / max_b_tn_value)}", callback_data="pages"), InlineKeyboardButton("𝐍𝐄𝐗𝐓 ➪", callback_data=f"next_{req}_{key}_{n_offset}")])
     else:
         btn.append(
             [
-                InlineKeyboardButton("«« 𝕻𝖗𝖊𝖛𝖎𝖔𝖚𝖘", callback_data=f"next_{req}_{key}_{off_set}"),
+                InlineKeyboardButton("«« 𝕻𝖗𝖊𝖛𝖎𝖔𝖚𝖘", callback_data=f"pmnext_{req}_{key}_{off_set}"),
                 InlineKeyboardButton(f"{math.ceil(int(offset) / max_b_tn_value) + 1} / {math.ceil(total / max_b_tn_value)}", callback_data="pages"),
-                InlineKeyboardButton("𝕹𝖊𝖝𝖙 »»", callback_data=f"next_{req}_{key}_{n_offset}")
+                InlineKeyboardButton("𝕹𝖊𝖝𝖙 »»", callback_data=f"pmnext_{req}_{key}_{n_offset}")
             ],
         )
     
@@ -125,8 +125,8 @@ async def next_page(bot, query):
     
     await query.answer()
 
-@Client.on_callback_query(filters.regex(r"^spol"))
-async def advantage_spoll_choker(bot, query):
+@Client.on_callback_query(filters.regex(r"^pmspol"))
+async def pm_advantage_spoll_choker(bot, query):
     _, user, movie_ = query.data.split('#')
     movies = SPELL_CHECK.get(query.message.reply_to_message.id)
     if not movies:
@@ -151,8 +151,8 @@ async def advantage_spoll_choker(bot, query):
                 await k.delete()
 
    
-async def auto_filter(client, msg, spoll=False):
-    if not spoll:
+async def pm_auto_filter(client, msg, pmspoll=False):
+    if not pmspoll:
         message = msg
         settings = await get_settings(message.chat.id)
         if message.text.startswith("/"): return  # ignore commands
@@ -163,7 +163,7 @@ async def auto_filter(client, msg, spoll=False):
             files, offset, total_results = await get_search_results(message.chat.id, search.lower(), offset=0, filter=True)
             if not files:
                 if settings["spell_check"]:
-                    return await advantage_spell_chok(client, msg)
+                    return await pm_advantage_spell_chok(client, msg)
                 return
         else:
             return
@@ -174,7 +174,7 @@ async def auto_filter(client, msg, spoll=False):
 
     temp.KEYWORD[message.from_user.id] = search
 
-    pre = 'filep' if settings['file_secure'] else 'file'
+    pre = 'pmfilep' if settings['file_secure'] else 'pmfile'
 
     if settings["button"]:
         btn = [
@@ -215,14 +215,14 @@ async def auto_filter(client, msg, spoll=False):
             btn.append([
                 InlineKeyboardButton("📑 ᴩᴀɢᴇꜱ", callback_data="pages"),
                 InlineKeyboardButton(text=f"1/{math.ceil(int(total_results) / (10 if settings.get('max_btn') else int(MAX_B_TN)))}", callback_data="pages"),
-                InlineKeyboardButton(text="𝕹𝖊𝖝𝖙 »»", callback_data=f"next_{req}_{key}_{offset}")
+                InlineKeyboardButton(text="𝕹𝖊𝖝𝖙 »»", callback_data=f"pmnext_{req}_{key}_{offset}")
             ])
         except KeyError:
             await save_group_settings(message.chat.id, 'max_btn', True)
             btn.append([
                 InlineKeyboardButton("📑 ᴩᴀɢᴇꜱ", callback_data="pages"),
                 InlineKeyboardButton(text=f"1/{math.ceil(int(total_results) / 10)}", callback_data="pages"),
-                InlineKeyboardButton(text="𝕹𝖊𝖝𝖙 »»", callback_data=f"next_{req}_{key}_{offset}")
+                InlineKeyboardButton(text="𝕹𝖊𝖝𝖙 »»", callback_data=f"pmnext_{req}_{key}_{offset}")
             ])
     else:
         btn.append([
@@ -299,7 +299,7 @@ async def handle_auto_delete(msg, original_msg, settings):
         await original_msg.delete()
 
 
-async def advantage_spell_chok(client, msg):
+async def pm_advantage_spell_chok(client, msg):
     mv_id = msg.id
     mv_rqst = msg.text
     settings = await get_settings(msg.chat.id)
@@ -347,7 +347,7 @@ async def advantage_spell_chok(client, msg):
         ]
         for k, movie_name in enumerate(movielist)
     ]
-    btn.append([InlineKeyboardButton(text="Close", callback_data=f'spol#{mv_id}#close_spellcheck')])
+    btn.append([InlineKeyboardButton(text="Close", callback_data=f'pmspol#{mv_id}#close_spellcheck')])
     spell_check_del = await msg.reply(
         script.CUDNT_FND.format(mv_rqst),
         reply_markup=InlineKeyboardMarkup(btn)
