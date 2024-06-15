@@ -28,10 +28,10 @@ SPELL_CHECK = {}
 
 
 @Client.on_message(filters.text & filters.private & filters.incoming)
-async def give_filter(client, message):
-    glob = await global_filters(client, message)
+async def auto_pm_fill(b, m):
+    glob = await global_filters(b, m)
     if not glob:
-        await pm_auto_Filter(client, message)
+        await pm_AutoFilter(b, m)
 
 @Client.on_callback_query(filters.regex(r"^pmnext"))
 async def pm_next_page(bot, query):
@@ -142,7 +142,7 @@ async def pm_advantage_spoll_choker(bot, query):
                 await k.delete()
 
    
-async def pm_auto_filter(client, msg, pmspoll=False):
+async def pm_AutoFilter(client, msg, pmspoll=False):
     if not pmspoll:
         message = msg
         settings = await get_settings(message.chat.id)
