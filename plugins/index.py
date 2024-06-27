@@ -30,18 +30,38 @@ async def index_files(bot, query):
     if query.data.startswith('index_cancel'):
         temp.CANCEL = True
         return await query.answer("Cᴀɴᴄᴇʟʟɪɴɢ Iɴᴅᴇxɪɴɢ", show_alert=True)
-        
-    perfx, chat, lst_msg_id = query.data.split("#")
-    if lock.locked():
-        return await query.answer('Wᴀɪᴛ Uɴᴛɪʟ Pʀᴇᴠɪᴏᴜs Pʀᴏᴄᴇss Cᴏᴍᴘʟᴇᴛᴇ', show_alert=True)
-    msg = query.message
-    button = InlineKeyboardMarkup([[
-        InlineKeyboardButton('🚫 ᴄᴀɴᴄᴇʟʟ', "index_cancel")
-    ]])
-    await msg.edit("ɪɴᴅᴇxɪɴɢ ɪs sᴛᴀʀᴛᴇᴅ ✨", reply_markup=button)                        
-    try: chat = int(chat)
-    except: chat = chat
-    await index_files_to_db(int(lst_msg_id), chat, msg, bot)
+    
+    # Log the content of query.data for debugging purposes
+    logger.info(f"query.data: {query.data}")
+
+    try:
+        # Split the data and ensure it has exactly three parts
+        parts = query.data.split("#")
+        if len(parts) != 3:
+            raise ValueError(f"Unexpected number of parts in query.data: {len(parts)} (expected 3)")
+
+        perfx, chat, lst_msg_id = parts
+
+        if lock.locked():
+            return await query.answer('Wᴀɪᴛ Uɴᴛɪʟ Pʀᴇᴠɪᴏᴜs Pʀᴏᴄᴇss Cᴏᴍᴘʟᴇᴛᴇ', show_alert=True)
+
+        msg = query.message
+        button = InlineKeyboardMarkup([[
+            InlineKeyboardButton('🚫 ᴄᴀɴᴄᴇʟʟ', "index_cancel")
+        ]])
+        await msg.edit("ɪɴᴅᴇxɪɴɢ ɪs sᴛᴀʀᴛᴇᴅ ✨", reply_markup=button)
+
+        try:
+            chat = int(chat)
+        except ValueError:
+            pass  # chat remains as string if it cannot be converted to int
+
+        await index_files_to_db(int(lst_msg_id), chat, msg, bot)
+
+    except ValueError as e:
+        # Handle the error (e.g., log it, send an error message to the user, etc.)
+        logger.error(f"Error: {e}")
+        await query.answer(f"Error: {e}", show_alert=True)
 
 
 @Client.on_message((filters.forwarded | (filters.regex("(https://)?(t\.me/|telegram\.me/|telegram\.dog/)(c/)?(\d+|[a-zA-Z_0-9]+)/(\d+)$")) & filters.text ) & filters.private & filters.incoming)
