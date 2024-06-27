@@ -1,7 +1,7 @@
 import os
 from pyrogram import Client, filters, enums
 from pyrogram.errors.exceptions.bad_request_400 import UserNotParticipant, MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty
-from info import IMDB_TEMPLATE
+from info import IMDB_TEMPLATE, ADMINS
 from utils import extract_user, get_file_id, get_poster, last_online
 import time
 from datetime import datetime
@@ -211,4 +211,10 @@ async def imdb_callback(bot: Client, quer_y: CallbackQuery):
     await quer_y.answer()
         
 
+@Client.on_message(filters.command("restart") & filters.user(ADMINS))
+async def restart_bot(bot, msg):
+    await msg.reply("Rᴇꜱᴛᴀᴛɪɴɢ........")
+    await asyncio.sleep(2)
+    await sts.delete()
+    os.execl(sys.executable, sys.executable, *sys.argv)
         
