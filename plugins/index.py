@@ -29,33 +29,49 @@ async def media(bot, message):
 async def index_files(bot, query):
     if query.data.startswith('index_cancel'):
         temp.CANCEL = True
-        return await query.answer("Cᴀɴᴄᴇʟʟɪɴɢ Iɴᴅᴇxɪɴɢ", show_alert=True)
-    
+        return await query.answer("Cancelling Indexing")
+
     # Log the content of query.data for debugging purposes
     logger.info(f"query.data: {query.data}")
 
     try:
-        # Split the data and ensure it has exactly three parts
+        # Split the data and ensure it has the expected number of parts
         parts = query.data.split("#")
-        if len(parts) != 3:
-            raise ValueError(f"Unexpected number of parts in query.data: {len(parts)} (expected 3)")
+        if len(parts) != 5:
+            raise ValueError(f"Unexpected number of parts in query.data: {len(parts)} (expected 5)")
 
-        perfx, chat, lst_msg_id = parts
+        _, raju, chat, lst_msg_id, from_user = parts
+        
+        if raju == 'reject':
+            await query.message.delete()
+            await bot.send_message(int(from_user),
+                                   f'Your Submission for indexing {chat} has been declined by our moderators.',
+                                   reply_to_message_id=int(lst_msg_id))
+            return
 
         if lock.locked():
-            return await query.answer('Wᴀɪᴛ Uɴᴛɪʟ Pʀᴇᴠɪᴏᴜs Pʀᴏᴄᴇss Cᴏᴍᴘʟᴇᴛᴇ', show_alert=True)
-
+            return await query.answer('Wait until previous process complete.', show_alert=True)
+        
         msg = query.message
-        button = InlineKeyboardMarkup([[
-            InlineKeyboardButton('🚫 ᴄᴀɴᴄᴇʟʟ', "index_cancel")
-        ]])
-        await msg.edit("ɪɴᴅᴇxɪɴɢ ɪs sᴛᴀʀᴛᴇᴅ ✨", reply_markup=button)
-
+        await query.answer('Processing...⏳', show_alert=True)
+        
+        if int(from_user) not in ADMINS:
+            await bot.send_message(int(from_user),
+                                   f'Your Submission for indexing {chat} has been accepted by our moderators and will be added soon.',
+                                   reply_to_message_id=int(lst_msg_id))
+        
+        await msg.edit(
+            "Starting Indexing",
+            reply_markup=InlineKeyboardMarkup(
+                [[InlineKeyboardButton('Cancel', callback_data='index_cancel')]]
+            )
+        )
+        
         try:
             chat = int(chat)
         except ValueError:
             pass  # chat remains as string if it cannot be converted to int
-
+        
         await index_files_to_db(int(lst_msg_id), chat, msg, bot)
 
     except ValueError as e:
@@ -162,17 +178,17 @@ async def index_files_to_db(lst_msg_id, chat, msg, bot):
             temp.CANCEL = False
             async for message in bot.iter_messages(chat, lst_msg_id, temp.CURRENT):
                 if temp.CANCEL:
-                    await msg.edit(f"Successfully Cancelled!!\n\nSaved <code>{total_files}</code> files to dataBase!\nDuplicate Files Skipped: <code>{duplicate}</code>\nDeleted Messages Skipped: <code>{deleted}</code>\nNon-Media messages skipped: <code>{no_media + unsupported}</code>(Unsupported Media - `{unsupported}` )\nErrors Occurred: <code>{errors}</code>")
+                    await msg.edit(f"Successfully Cancelled!!\n\nSaved <code>{total_files}</code> files to dataBase!\nDuplicate Files Skipped: <code>{duplicate}</code>\nDeleted Messages Skipped: <code>{deleted}</code>\nNon-Media messages skipped: <code>{no_media + unsupported}</code> (Unsupported Media - `{unsupported}`)\nErrors Occurred: <code>{errors}</code>")
                     break
                 current += 1
                 if current % 100 == 0:
                     can = [[InlineKeyboardButton('Cancel', callback_data='index_cancel')]]
                     reply = InlineKeyboardMarkup(can)
                     try:
-                        await msg.edit_text(text=f"Total Messages Fetched: <code>{current}</code>\nTotal Messages Saved: <code>{total_files}</code>\nDuplicate Files Skipped: <code>{duplicate}</code>\nDeleted Messages Skipped: <code>{deleted}</code>\nNon-Media messages skipped: <code>{no_media + unsupported}</code>(Unsupported Media - `{unsupported}` )\nErrors Occurred: <code>{errors}</code>", reply_markup=reply)       
+                        await msg.edit_text(text=f"Total Messages Fetched: <code>{current}</code>\nTotal Messages Saved: <code>{total_files}</code>\nDuplicate Files Skipped: <code>{duplicate}</code>\nDeleted Messages Skipped: <code>{deleted}</code>\nNon-Media messages skipped: <code>{no_media + unsupported}</code> (Unsupported Media - `{unsupported}`)\nErrors Occurred: <code>{errors}</code>", reply_markup=reply)       
                     except FloodWait as t:
                         await asyncio.sleep(t.value)
-                        await msg.edit_text(text=f"Total Messages Fetched: <code>{current}</code>\nTotal Messages Saved: <code>{total_files}</code>\nDuplicate Files Skipped: <code>{duplicate}</code>\nDeleted Messages Skipped: <code>{deleted}</code>\nNon-Media messages skipped: <code>{no_media + unsupported}</code>(Unsupported Media - `{unsupported}` )\nErrors Occurred: <code>{errors}</code>", reply_markup=reply)                          
+                        await msg.edit_text(text=f"Total Messages Fetched: <code>{current}</code>\nTotal Messages Saved: <code>{total_files}</code>\nDuplicate Files Skipped: <code>{duplicate}</code>\nDeleted Messages Skipped: <code>{deleted}</code>\nNon-Media messages skipped: <code>{no_media + unsupported}</code> (Unsupported Media - `{unsupported}`)\nErrors Occurred: <code>{errors}</code>", reply_markup=reply)
                 if message.empty:
                     deleted += 1
                     continue
@@ -194,9 +210,11 @@ async def index_files_to_db(lst_msg_id, chat, msg, bot):
                 elif vnay == 0:
                     duplicate += 1
                 elif vnay == 2:
-                    errors += 1       
+                    errors += 1
         except Exception as e:
             logger.exception(e)
             await msg.edit(f'Error: {e}')
         else:
-            await msg.edit(f'Succesfully Saved <code>{total_files}</code> To Database!\nDuplicate Files Skipped: <code>{duplicate}</code>\nDeleted Messages Skipped: <code>{deleted}</code>\nNon-Media Messages Skipped: <code>{no_media + unsupported}</code>(Unsupported Media - `{unsupported}` )\nErrors Occurred: <code>{errors}</code>')
+            await msg.edit(f'Successfully Saved <code>{total_files}</code> To Database!\nDuplicate Files Skipped: <code>{duplicate}</code>\nDeleted Messages Skipped: <code>{deleted}</code>\nNon-Media Messages Skipped: <code>{no_media + unsupported}</code> (Unsupported Media - `{unsupported}`)\nErrors Occurred: <code>{errors}</code}')
+        finally:
+            temp.CANCEL = False  # Reset the cancel flag
