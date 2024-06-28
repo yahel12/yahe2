@@ -22,8 +22,6 @@ from aiohttp import web
 from plugins import web_server
 from sample_info import tempDict
 
-# temp dict for storing the db URI which will be used for storing user, chat, and file infos
-tempDict = {'indexDB': DATABASE_URI}
 
 class Bot(Client):
 
