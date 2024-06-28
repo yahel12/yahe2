@@ -22,6 +22,9 @@ from aiohttp import web
 from plugins import web_server
 from sample_info import tempDict
 
+# temp dict for storing the db URI which will be used for storing user, chat, and file infos
+tempDict = {'indexDB': DATABASE_URI}
+
 class Bot(Client):
 
     def __init__(self):
@@ -35,7 +38,7 @@ class Bot(Client):
             sleep_threshold=10,
         )
 
-    async def dbStats(client):
+    async def dbStats(self, client):
         try:
             stats = await client[DATABASE_NAME].command('dbStats')
             return stats
@@ -52,7 +55,7 @@ class Bot(Client):
         await Media2.ensure_indexes()
 
         # Fetch dbStats for the primary DB
-        stats = await dbStats(client)
+        stats = await self.dbStats(client)
         if not stats:
             logging.error("Failed to get dbStats from primary DB.")
             return
