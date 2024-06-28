@@ -116,21 +116,22 @@ async def get_search_results(chat_id, query, file_type=None, max_results=10, off
     
     # Adjust max_results based on group settings if chat_id is provided
     if chat_id is not None:
-        settings = await get_settings(int(chat_id))
         try:
-            # Check 'max_btn' setting to determine max_results value
-            max_results = 10 if settings.get('max_btn', False) else int(MAX_B_TN)
+            settings = await get_settings(int(chat_id))
+            max_btn = settings.get('max_btn', False)
+            max_results = 10 if max_btn else int(max_btn)
         except KeyError:
-            # Handle case where 'max_btn' is not set in settings
             await save_group_settings(int(chat_id), 'max_btn', False)
             settings = await get_settings(int(chat_id))
-            max_results = 10 if settings.get('max_btn', False) else int(MAX_B_TN)
+            max_btn = settings.get('max_btn', False)
+            max_results = 10 if max_btn else int(max_btn)
 
     query = query.strip()
+    
     # Construct regular expression pattern based on query
     raw_pattern = (
         r'.' if not query else  # Match anything if query is empty
-        r'(\b|[\.\+\-_])' + query + r'(\b|[\.\+\-_])' if ' ' not in query else  # Match exact words
+        rf'(\b|[.\+\-_]){re.escape(query)}(\b|[.\+\-_])' if ' ' not in query else  # Match exact words
         query.replace(' ', r'.*[\s\.\+\-_()]')  # Match words with spaces replaced by any separator
     )
 
@@ -138,11 +139,11 @@ async def get_search_results(chat_id, query, file_type=None, max_results=10, off
         regex = re.compile(raw_pattern, flags=re.IGNORECASE)
     except re.error:
         logger.exception('Invalid regular expression pattern')
-        return []
+        return [], '', 0
 
     # Build the filter query
     filter_query = {'$or': [{'file_name': regex}]}
-    if USE_CAPTION_FILTER:
+    if filter and USE_CAPTION_FILTER:
         filter_query['$or'].append({'caption': regex})
     if file_type:
         filter_query['file_type'] = file_type
@@ -156,13 +157,13 @@ async def get_search_results(chat_id, query, file_type=None, max_results=10, off
         max_results += 1
 
     # Fetch results from both collections
-    cursor1 = Media.find(filter_query).sort('$natural', -1).skip(offset).limit(max_results // 2)
-    cursor2 = Media2.find(filter_query).sort('$natural', -1).skip(offset).limit(max_results // 2)
+    cursor1 = Media.find(filter_query).sort('$natural', -1).skip(offset).limit(max_results)
+    cursor2 = Media2.find(filter_query).sort('$natural', -1).skip(offset).limit(max_results)
     
     # Combine the results
-    files1 = await cursor1.to_list(length=max_results // 2)
-    files2 = await cursor2.to_list(length=max_results // 2)
-    files = files1 + files2
+    files1 = await cursor1.to_list(length=max_results)
+    files2 = await cursor2.to_list(length=max_results)
+    files = files1[:max_results // 2] + files2[:max_results // 2]
 
     # Calculate next offset
     next_offset = offset + len(files)
