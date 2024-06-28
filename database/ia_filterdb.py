@@ -18,9 +18,9 @@ logger.setLevel(logging.INFO)
 saveMedia = None
 
 #primary db
-self.client = AsyncIOMotorClient(DATABASE_URI)
-self.db = client[DATABASE_NAME]
-self.instance = Instance.from_db(db)
+client = AsyncIOMotorClient(DATABASE_URI)
+db = client[DATABASE_NAME]
+instance = Instance.from_db(db)
 
 @instance.register
 class Media(Document):
@@ -37,9 +37,9 @@ class Media(Document):
         collection_name = COLLECTION_NAME
 
 #secondary db
-self.client2 = AsyncIOMotorClient(SECONDDB_URI)
-self.db2 = client2[DATABASE_NAME]
-self.instance2 = Instance.from_db(db2)
+client2 = AsyncIOMotorClient(SECONDDB_URI)
+db2 = client2[DATABASE_NAME]
+instance2 = Instance.from_db(db2)
 
 @instance2.register
 class Media2(Document):
