@@ -36,7 +36,7 @@ class Bot(Client):
             sleep_threshold=10,
         )
 
-    async def dbStats(self, client):
+    async def dbStats(self):
         try:
             stats = await client[DATABASE_NAME].command('dbStats')
             return stats
@@ -53,7 +53,7 @@ class Bot(Client):
         await Media2.ensure_indexes()
 
         # Fetch dbStats for the primary DB
-        stats = await self.dbStats(self.client)
+        stats = await self.dbStats()
         if not stats:
             logging.error("Failed to get dbStats from primary DB.")
             return
