@@ -1,160 +1,137 @@
-# https://github.com/odysseusmax/animated-lamp/blob/master/bot/database/database.py
 import motor.motor_asyncio
 from sample_info import tempDict
-from info import DATABASE_NAME, DATABASE_URI, IMDB, IMDB_TEMPLATE, MELCOW_NEW_USERS, P_TTI_SHOW_OFF, SINGLE_BUTTON, SPELL_CHECK_REPLY, PROTECT_CONTENT, AUTO_DELETE, MAX_BTN, AUTO_FFILTER, SECONDDB_URI
+from info import (
+    DATABASE_NAME, DATABASE_URI, SECONDDB_URI,
+    IMDB, IMDB_TEMPLATE, MELCOW_NEW_USERS, P_TTI_SHOW_OFF,
+    SINGLE_BUTTON, SPELL_CHECK_REPLY, PROTECT_CONTENT,
+    AUTO_DELETE, MAX_BTN, AUTO_FFILTER
+)
 
 class Database:
     
     def __init__(self, database_name):
-        #primary db 
+        # Initialize primary database connection
         self._client = motor.motor_asyncio.AsyncIOMotorClient(DATABASE_URI)
         self.db = self._client[database_name]
         self.col = self.db.users
         self.grp = self.db.groups
-        #secondary db
+        
+        # Initialize secondary database connection
         self._client2 = motor.motor_asyncio.AsyncIOMotorClient(SECONDDB_URI)
         self.db2 = self._client2[database_name]
         self.col2 = self.db2.users
         self.grp2 = self.db2.groups
 
-
     def new_user(self, id, name):
-        return dict(
-            id = id,
-            name = name,
-            ban_status=dict(
-                is_banned=False,
-                ban_reason="",
-            ),
-        )
+        """Create a new user document."""
+        return {
+            'id': id,
+            'name': name,
+            'ban_status': {
+                'is_banned': False,
+                'ban_reason': "",
+            }
+        }
 
     def new_group(self, id, title):
-        return dict(
-            id = id,
-            title = title,
-            chat_status=dict(
-                is_disabled=False,
-                reason="",
-            ),
-        )
+        """Create a new group document."""
+        return {
+            'id': id,
+            'title': title,
+            'chat_status': {
+                'is_disabled': False,
+                'reason': "",
+            }
+        }
     
     async def add_user(self, id, name):
+        """Add a new user to the appropriate database."""
         user = self.new_user(id, name)
-        print(f"tempDict: {tempDict['indexDB']}\n\nDATABASE_URI: {DATABASE_URI}")
-        if tempDict['indexDB'] == DATABASE_URI:
-            await self.col.insert_one(user)
-        else:
-            await self.col2.insert_one(user)
+        db_to_use = self.db if tempDict['indexDB'] == DATABASE_URI else self.db2
+        await db_to_use.users.insert_one(user)
     
     async def is_user_exist(self, id):
-        user = await self.col.find_one({'id':int(id)})
+        """Check if a user exists in either database."""
+        user = await self.col.find_one({'id': int(id)})
         if not user:
-            user = await self.col2.find_one({'id':int(id)})
+            user = await self.col2.find_one({'id': int(id)})
         return bool(user)
     
     async def total_users_count(self):
-        count = ((await self.col.count_documents({}))+(await self.col2.count_documents({})))
+        """Count total users across both databases."""
+        count = await self.col.count_documents({}) + await self.col2.count_documents({})
         return count
     
     async def remove_ban(self, id):
-        ban_status = dict(
-            is_banned=False,
-            ban_reason=''
-        )
-        user = await self.col.find_one({'id': int(id)})
-        if not user:
-            await self.col2.update_one({'id': id}, {'$set': {'ban_status': ban_status}})
-        else:
-            await self.col.update_one({'id': id}, {'$set': {'ban_status': ban_status}})
+        """Remove ban status for a user."""
+        ban_status = {'is_banned': False, 'ban_reason': ''}
+        db_to_use = self.db if await self.col.find_one({'id': int(id)}) else self.db2
+        await db_to_use.users.update_one({'id': id}, {'$set': {'ban_status': ban_status}})
     
     async def ban_user(self, user_id, ban_reason="No Reason"):
-        ban_status = dict(
-            is_banned=True,
-            ban_reason=ban_reason
-        )
-        user = await self.col.find_one({'id': int(user_id)})
-        if not user:
-            await self.col2.update_one({'id': user_id}, {'$set': {'ban_status': ban_status}})
-        else:
-            await self.col.update_one({'id': user_id}, {'$set': {'ban_status': ban_status}})
+        """Ban a user."""
+        ban_status = {'is_banned': True, 'ban_reason': ban_reason}
+        db_to_use = self.db if await self.col.find_one({'id': int(user_id)}) else self.db2
+        await db_to_use.users.update_one({'id': user_id}, {'$set': {'ban_status': ban_status}})
 
     async def get_ban_status(self, id):
-        default = dict(
-            is_banned=False,
-            ban_reason=''
-        )
-        user = await self.col.find_one({'id':int(id)})
-        if not user:
-            user = await self.col2.find_one({'id':int(id)})
-            if not user:
-                return default
+        """Get ban status for a user."""
+        default = {'is_banned': False, 'ban_reason': ''}
+        user = await self.col.find_one({'id': int(id)}) or await self.col2.find_one({'id': int(id)})
         return user.get('ban_status', default)
 
     async def get_all_users(self):
+        """Fetch all users from both databases."""
         async for user in self.col.find({}):
             yield user
         async for user in self.col2.find({}):
             yield user
     
-
     async def delete_user(self, user_id):
-        user = await self.col.find_one({'id': int(user_id)})
-        if user:
-            await self.col.delete_many({'id': int(user_id)})
-        else:
-            await self.col2.delete_many({'id': int(user_id)})
-
+        """Delete a user from the appropriate database."""
+        db_to_use = self.db if await self.col.find_one({'id': int(user_id)}) else self.db2
+        await db_to_use.users.delete_many({'id': int(user_id)})
 
     async def get_banned(self):
-        users = self.col.find({'ban_status.is_banned': True})
-        chats = self.grp.find({'chat_status.is_disabled': True})
-        b_chats = [chat['id'] async for chat in chats]
-        b_users = [user['id'] async for user in users]
-        users = self.col2.find({'ban_status.is_banned': True})
-        chats = self.grp2.find({'chat_status.is_disabled': True})
-        b_chats += [chat['id'] async for chat in chats]
-        b_users += [user['id'] async for user in users]
-        return b_users, b_chats
+        """Get IDs of all banned users and disabled chats."""
+        async def fetch_banned_users(db):
+            async for item in db.find({'ban_status.is_banned': True}):
+                yield item['id']
+        
+        async def fetch_disabled_chats(db):
+            async for item in db.find({'chat_status.is_disabled': True}):
+                yield item['id']
+        
+        banned_users = await fetch_banned_users(self.col) + await fetch_banned_users(self.col2)
+        disabled_chats = await fetch_disabled_chats(self.grp) + await fetch_disabled_chats(self.grp2)
+        
+        return banned_users, disabled_chats
     
-
-
     async def add_chat(self, chat, title):
-        chat = self.new_group(chat, title)
-        print(f"tempDict: {tempDict['indexDB']}\n\nDATABASE_URI: {DATABASE_URI}")
-        if tempDict['indexDB'] == DATABASE_URI:
-            await self.grp.insert_one(chat)
-        else:
-            await self.grp2.insert_one(chat)
+        """Add a new chat to the appropriate database."""
+        chat_doc = self.new_group(chat, title)
+        db_to_use = self.db if tempDict['indexDB'] == DATABASE_URI else self.db2
+        await db_to_use.groups.insert_one(chat_doc)
     
-
     async def get_chat(self, id):
-        chat = await self.grp.find_one({'id':int(id)})
-        if not chat:
-            chat = await self.grp2.find_one({'id':int(id)})
-        return False if not chat else chat.get('chat_status')
+        """Get chat status for a given chat ID."""
+        chat = await self.grp.find_one({'id': int(id)}) or await self.grp2.find_one({'id': int(id)})
+        return chat.get('chat_status') if chat else False
     
-
     async def re_enable_chat(self, id):
-        chat_status=dict(
-            is_disabled=False,
-            reason="",
-            )
-        chat = await self.grp.find_one({'id':int(id)})
-        if chat:
-            await self.grp.update_one({'id': int(id)}, {'$set': {'chat_status': chat_status}})
-        else:
-            await self.grp2.update_one({'id': int(id)}, {'$set': {'chat_status': chat_status}})
-        
+        """Re-enable a disabled chat."""
+        chat_status = {'is_disabled': False, 'reason': ''}
+        db_to_use = self.db if await self.grp.find_one({'id': int(id)}) else self.db2
+        await db_to_use.groups.update_one({'id': int(id)}, {'$set': {'chat_status': chat_status}})
+    
     async def update_settings(self, id, settings):
-        chat = await self.grp.find_one({'id':int(id)})
-        if chat:
-            await self.grp.update_one({'id': int(id)}, {'$set': {'settings': settings}})
-        else:
-            await self.grp2.update_one({'id': int(id)}, {'$set': {'settings': settings}})
-        
+        """Update settings for a chat."""
+        db_to_use = self.db if await self.grp.find_one({'id': int(id)}) else self.db2
+        await db_to_use.groups.update_one({'id': int(id)}, {'$set': {'settings': settings}})
     
     async def get_settings(self, id):
-        default = {
+        """Get settings for a chat."""
+        default_settings = {
             'button': SINGLE_BUTTON,
             'botpm': P_TTI_SHOW_OFF,
             'file_secure': PROTECT_CONTENT,
@@ -166,34 +143,24 @@ class Database:
             'max_btn': MAX_BTN,
             'template': IMDB_TEMPLATE
         }
-        chat = await self.grp.find_one({'id':int(id)})
-        if chat:
-            return chat.get('settings', default)
-        else:
-            chat = await self.grp2.find_one({'id':int(id)})
-            if chat:
-                return chat.get('settings', default)
-        return default
+        chat = await self.grp.find_one({'id': int(id)}) or await self.grp2.find_one({'id': int(id)})
+        return chat.get('settings', default_settings) if chat else default_settings
     
-
     async def disable_chat(self, chat, reason="No Reason"):
-        chat_status=dict(
-            is_disabled=True,
-            reason=reason,
-            )
-        chat = await self.grp.find_one({'id':int(chat)})
-        if chat:
-            await self.grp.update_one({'id': int(chat)}, {'$set': {'chat_status': chat_status}})
-        else:
-            await self.grp2.update_one({'id': int(chat)}, {'$set': {'chat_status': chat_status}})
+        """Disable a chat."""
+        chat_status = {'is_disabled': True, 'reason': reason}
+        db_to_use = self.db if await self.grp.find_one({'id': int(chat)}) else self.db2
+        await db_to_use.groups.update_one({'id': int(chat)}, {'$set': {'chat_status': chat_status}})
     
-
     async def total_chat_count(self):
-        count = (await self.grp.count_documents({}))+(await self.grp2.count_documents({}))
+        """Count total chats across both databases."""
+        count = await self.grp.count_documents({}) + await self.grp2.count_documents({})
         return count
     
-
     async def get_all_chats(self):
-        return ((await (self.grp.find({})).to_list(length=None))+(await (self.grp2.find({})).to_list(length=None)))
+        """Fetch all chats from both databases."""
+        all_chats = await self.grp.find({}).to_list(None) + await self.grp2.find({}).to_list(None)
+        return all_chats
 
+# Example usage:
 db = Database(DATABASE_NAME)
