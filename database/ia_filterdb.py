@@ -66,35 +66,51 @@ async def choose_mediaDB():
         saveMedia = Media2
 
 async def save_file(media):
-    """Save file in database"""
-
-    # TODO: Find better way to get same file_id for same media to avoid duplicates
+    """Save file in the chosen database (Media or Media2)"""
     file_id, file_ref = unpack_new_file_id(media.file_id)
     file_name = re.sub(r"(_|\-|\.|\+)", " ", str(media.file_name))
+
     try:
+        # Check if the file already exists in the primary database (Media)
         if await Media.count_documents({'file_id': file_id}, limit=1):
             logger.warning(f'{getattr(media, "file_name", "NO_FILE")} is already saved in primary DB !')
             return False, 0
-        file = saveMedia(
-            file_id=file_id,
-            file_ref=file_ref,
-            file_name=file_name,
-            file_size=media.file_size,
-            file_type=media.file_type,
-            mime_type=media.mime_type,
-            caption=media.caption.html if media.caption else None,
-        )
+        
+        # Check if the file already exists in the secondary database (Media2)
+        if await Media2.count_documents({'file_id': file_id}, limit=1):
+            logger.warning(f'{getattr(media, "file_name", "NO_FILE")} is already saved in secondary DB !')
+            return False, 0
+
+        # Determine which database (Media or Media2) to save the file to
+        if saveMedia == Media:
+            file = saveMedia(
+                file_id=file_id,
+                file_ref=file_ref,
+                file_name=file_name,
+                file_size=media.file_size,
+                file_type=media.file_type,
+                mime_type=media.mime_type,
+                caption=media.caption.html if media.caption else None,
+            )
+        else:
+            file = saveMedia(
+                file_id=file_id,
+                file_ref=file_ref,
+                file_name=file_name,
+                file_size=media.file_size,
+                file_type=media.file_type,
+                mime_type=media.mime_type,
+                caption=media.caption.html if media.caption else None,
+            )
     except ValidationError:
         logger.exception('Error occurred while saving file in database')
         return False, 2
     else:
         try:
+            # Commit file to the chosen database
             await file.commit()
-        except DuplicateKeyError:  
-            logger.warning(
-                f'{getattr(media, "file_name", "NO_FILE")} is already saved in database'
-            )
-
+        except DuplicateKeyError:
+            logger.warning(f'{getattr(media, "file_name", "NO_FILE")} is already saved in database')
             return False, 0
         else:
             logger.info(f'{getattr(media, "file_name", "NO_FILE")} is saved to database')
