@@ -39,7 +39,7 @@ class Bot(Client):
 
     async def dbStats(self):
         try:
-            stats = await client[DATABASE_NAME].command('dbStats')
+            stats = await clientDB.command('dbStats')
             return stats
         except OperationFailure as e:
             logging.error(f"Error fetching dbStats: {e}")
