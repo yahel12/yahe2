@@ -53,7 +53,7 @@ class Bot(Client):
         await Media2.ensure_indexes()
 
         # Fetch dbStats for the primary DB
-        stats = await self.dbStats(client)
+        stats = await self.dbStats(self.client)
         if not stats:
             logging.error("Failed to get dbStats from primary DB.")
             return
