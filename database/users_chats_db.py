@@ -93,30 +93,30 @@ class Database:
         await db_to_use.users.delete_many({'id': int(user_id)})
 
     async def get_banned(self):
-    """Get IDs of all banned users and disabled chats."""
+        """Get IDs of all banned users and disabled chats."""
     
-    async def fetch_banned_users(db):
-        async for item in db.find({'ban_status.is_banned': True}):
-            yield item['id']
+        async def fetch_banned_users(db):
+            async for item in db.find({'ban_status.is_banned': True}):
+                yield item['id']
+     
+        async def fetch_disabled_chats(db):
+            async for item in db.find({'chat_status.is_disabled': True}):
+                yield item['id']
     
-    async def fetch_disabled_chats(db):
-        async for item in db.find({'chat_status.is_disabled': True}):
-            yield item['id']
+        # Collect banned users and disabled chats using async for loops
+        banned_users = []
+        async for user_id in fetch_banned_users(self.col):
+            banned_users.append(user_id)
+        async for user_id in fetch_banned_users(self.col2):
+            banned_users.append(user_id)
     
-    # Collect banned users and disabled chats using async for loops
-    banned_users = []
-    async for user_id in fetch_banned_users(self.col):
-        banned_users.append(user_id)
-    async for user_id in fetch_banned_users(self.col2):
-        banned_users.append(user_id)
+        disabled_chats = []
+        async for chat_id in fetch_disabled_chats(self.grp):
+            disabled_chats.append(chat_id)
+        async for chat_id in fetch_disabled_chats(self.grp2):
+            disabled_chats.append(chat_id)
     
-    disabled_chats = []
-    async for chat_id in fetch_disabled_chats(self.grp):
-        disabled_chats.append(chat_id)
-    async for chat_id in fetch_disabled_chats(self.grp2):
-        disabled_chats.append(chat_id)
-    
-    return banned_users, disabled_chats
+        return banned_users, disabled_chats
     
     async def add_chat(self, chat, title):
         """Add a new chat to the appropriate database."""
