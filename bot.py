@@ -12,7 +12,7 @@ from pyrogram.raw.all import layer
 from pymongo.errors import OperationFailure
 from database.ia_filterdb import Media, Media2, choose_mediaDB, db as clientDB
 from database.users_chats_db import db
-from info import SESSION, API_ID, API_HASH, BOT_TOKEN, LOG_STR, LOG_CHANNEL, PORT, SECONDDB_URI
+from info import SESSION, API_ID, API_HASH, BOT_TOKEN, LOG_STR, LOG_CHANNEL, PORT, SECONDDB_URI, DATABASE_URI
 from utils import temp
 from typing import Union, Optional, AsyncGenerator
 from pyrogram import types
