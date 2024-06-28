@@ -1,12 +1,12 @@
 import logging
 from struct import pack, unpack
 from typing import Tuple
-import re
 import base64
+import re
+from motor.motor_asyncio import AsyncIOMotorClient
 from pyrogram.file_id import FileId
 from pymongo.errors import DuplicateKeyError
 from umongo import Instance, Document, fields
-from motor.motor_asyncio import AsyncIOMotorClient
 from marshmallow.exceptions import ValidationError
 from info import DATABASE_URI, DATABASE_NAME, COLLECTION_NAME, USE_CAPTION_FILTER, MAX_B_TN, SECONDDB_URI
 from utils import get_settings, save_group_settings
@@ -231,46 +231,75 @@ async def get_bad_files(query, file_type=None, filter=False):
     return files, total_results
 
 async def get_file_details(query):
-    filter = {'file_id': query}
+    """Fetch file details from MongoDB based on file_id."""
+    filter = {'file_id': query}  # Define filter based on file_id query
+
+    # Attempt to find file details in the first MongoDB collection (Media)
     cursor = Media.find(filter)
     filedetails = await cursor.to_list(length=1)
+
+    # If file details are not found in the first collection, try the second (Media2)
     if not filedetails:
         cursor2 = Media2.find(filter)
         filedetails = await cursor2.to_list(length=1)
-    return filedetails
+
+    return filedetails  # Return the fetched file details (empty list if not found)
+
 
 def encode_file_id(s: bytes) -> str:
-    r = b""
-    n = 0
+    """Encode bytes to a URL-safe base64 string."""
+    r = b""  # Initialize an empty bytes object
+    n = 0  # Initialize a counter for consecutive zeros
 
+    # Iterate through each byte in the input bytes `s`
     for i in s + bytes([22]) + bytes([4]):
         if i == 0:
-            n += 1
+            n += 1  # Increment the zero counter if the byte is zero
         else:
             if n:
+                # If there were consecutive zeros, add a zero byte followed by the count
                 r += b"\x00" + bytes([n])
                 n = 0
 
-            r += bytes([i])
+            r += bytes([i])  # Add the current byte to the result bytes `r`
 
-    return base64.urlsafe_b64encode(r).decode().rstrip("=")
+    # Encode the result bytes `r` using URL-safe base64 encoding,
+    # decode to UTF-8 string, and remove trailing '=' characters
+    encoded_str = base64.urlsafe_b64encode(r).decode().rstrip("=")
+    
+    return encoded_str  # Return the encoded string
 
 
 def encode_file_ref(file_ref: bytes) -> str:
-    return base64.urlsafe_b64encode(file_ref).decode().rstrip("=")
+    """Encode file reference bytes to a URL-safe base64 string."""
+    # Encode the file_ref using URL-safe base64 encoding
+    encoded = base64.urlsafe_b64encode(file_ref)
+    
+    # Decode the bytes to UTF-8 string and remove trailing '=' characters
+    encoded_str = encoded.decode().rstrip("=")
+    
+    return encoded_str
 
-
-def unpack_new_file_id(new_file_id):
-    """Return file_id, file_ref"""
-    decoded = FileId.decode(new_file_id)
-    file_id = encode_file_id(
-        pack(
-            "<iiqq",
-            int(decoded.file_type),
-            decoded.dc_id,
-            decoded.media_id,
-            decoded.access_hash
-        )
-    )
-    file_ref = encode_file_ref(decoded.file_reference)
-    return file_id, file_ref
+def unpack_new_file_id(new_file_id: bytes) -> Tuple[bytes, bytes]:
+    """Decode and unpack a new_file_id into file_id and file_ref."""
+    try:
+        # Decoding the new_file_id using a custom function (decode_file_id)
+        decoded = decode_file_id(new_file_id)
+        
+        # Encoding the decoded parts into a new file_id using pack function
+        file_id = encode_file_id(pack("<iiqq",
+                                      int(decoded.file_type),
+                                      decoded.dc_id,
+                                      decoded.media_id,
+                                      decoded.access_hash))
+        
+        # Encoding the file reference part using a custom function (encode_file_ref)
+        file_ref = encode_file_ref(decoded.file_reference)
+        
+        # Returning the encoded file_id and file_ref as a tuple
+        return file_id, file_ref
+    
+    except Exception as e:
+        # Handling exceptions that might occur during decoding or encoding
+        print(f"Error decoding new_file_id: {e}")
+        return b'', b''  # Returning empty bytes objects or handle the error as needed
