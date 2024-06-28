@@ -62,7 +62,7 @@ class Bot(Client):
         logging.info(f"Primary DB free space: {free_dbSize} MB")
         
         # Choose the right DB by checking the free space
-        if SECONDDB_URI and free_dbSize < 10:  # If the primary DB has less than 10MB left, use the second DB.
+        if SECONDDB_URI and free_dbSize < 99:  # If the primary DB has less than 99MB left, use the second DB.
             tempDict["indexDB"] = SECONDDB_URI
             logging.info(f"Since Primary DB has only {free_dbSize} MB left, Secondary DB will be used to store data.")
         elif SECONDDB_URI is None:
