@@ -411,7 +411,7 @@ async def send_manual_message(client, group_id, reply_text, btn, settings, reply
             group_id,
             reply_text,
             disable_web_page_preview=True,
-            reply_markup=InlineKeyboardMarkup(button),
+            reply_markup=InlineKeyboardMarkup(btn),
             protect_content=True if settings["file_secure"] else False,
             reply_to_message_id=reply_id
         )
@@ -431,7 +431,7 @@ async def send_manual_media(client, message, group_id, reply_text, btn, fileid, 
         joelkb = await message.reply_cached_media(
             fileid,
             caption=reply_text or "",
-            reply_markup=InlineKeyboardMarkup(button),
+            reply_markup=InlineKeyboardMarkup(btn),
             reply_to_message_id=reply_id
         )
     await handle_manual_auto_filter(client, message, joelkb, settings)
@@ -496,7 +496,7 @@ async def send_global_message(client, group_id, reply_text, btn, settings, reply
             group_id,
             reply_text,
             disable_web_page_preview=True,
-            reply_markup=InlineKeyboardMarkup(button),
+            reply_markup=InlineKeyboardMarkup(btn),
             reply_to_message_id=reply_id
         )
     await handle_global_auto_filter(client, message, joelkb, settings)
@@ -514,7 +514,7 @@ async def send_global_media(client, message, group_id, reply_text, btn, fileid, 
         joelkb = await message.reply_cached_media(
             fileid,
             caption=reply_text or "",
-            reply_markup=InlineKeyboardMarkup(button),
+            reply_markup=InlineKeyboardMarkup(btn),
             reply_to_message_id=reply_id
         )
     await handle_global_auto_filter(client, message, joelkb, settings)
