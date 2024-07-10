@@ -45,6 +45,7 @@ class temp(object):
     SETTINGS = {}
     KEYWORD = {}
     PM_SPELL = {}
+    GP_SPELL = {}
 
 async def is_subscribed(bot, query=None, userid=None):
     try:
