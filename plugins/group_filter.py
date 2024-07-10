@@ -259,60 +259,105 @@ async def handle_auto_delete(msg, original_msg, settings):
         await msg.delete()
         await original_msg.delete()
 
-
 async def advantage_spell_chok(client, msg):
+    # Extract message ID and text
     mv_id = msg.id
     mv_rqst = msg.text
+
+    # Fetch settings for the chat
     settings = await get_settings(msg.chat.id)
+
+    # Clean the query from unnecessary words and add "movie" to it
     query = re.sub(
         r"\b(pl(i|e)*?(s|z+|ease|se|ese|(e+)s(e)?)|((send|snd|giv(e)?|gib)(\sme)?)|movie(s)?|new|latest|br((o|u)h?)*|^h(e|a)?(l)*(o)*|mal(ayalam)?|t(h)?amil|file|that|find|und(o)*|kit(t(i|y)?)?o(w)?|thar(u)?(o)*w?|kittum(o)*|aya(k)*(um(o)*)?|full\smovie|any(one)|with\ssubtitle(s)?)",
-        "", msg.text, flags=re.IGNORECASE)  # plis contribute some common words
+        "", msg.text, flags=re.IGNORECASE
+    )
     query = query.strip() + " movie"
-    try:
-        movies = await get_poster(mv_rqst, bulk=True)
-    except Exception as e:
-        logger.exception(e)
-        reqst_gle = mv_rqst.replace(" ", "+")
-        button = [[
-            InlineKeyboardButton("Gᴏᴏɢʟᴇ", url=f"https://www.google.com/search?q={reqst_gle}")
-        ]]
+
+    # Search using the cleaned query and the original message text
+    g_s = await search_gagala(query)
+    g_s += await search_gagala(msg.text)
+    gs_parsed = []
+
+    # If no results found, reply with an error message and return
+    if not g_s:
         k = await msg.reply(
             script.I_CUDNT.format(mv_rqst),
             reply_markup=InlineKeyboardMarkup(button)
         )
-        await asyncio.sleep(30)
+        await asyncio.sleep(10)
         await k.delete()
         return
-    movielist = []
-    if not movies:
-        reqst_gle = mv_rqst.replace(" ", "+")
-        button = [[
-            InlineKeyboardButton("Gᴏᴏɢʟᴇ", url=f"https://www.google.com/search?q={reqst_gle}")
-        ]]
-        k = await msg.reply(
-            script.I_CUDNT.format(mv_rqst),
-            reply_markup=InlineKeyboardMarkup(button)
-        )
-        await asyncio.sleep(30)
-        await k.delete()
-        return
-    movielist += [movie.get('title') for movie in movies]
-    movielist += [f"{movie.get('title')} {movie.get('year')}" for movie in movies]
-    SPELL_CHECK[mv_id] = movielist
-    btn = [
-        [
-            InlineKeyboardButton(
-                text=movie_name.strip(),
-                callback_data=f"spol#{mv_id}#{k}",
-            )
-        ]
-        for k, movie_name in enumerate(movielist)
+
+    # Filter results to only include IMDb or Wikipedia links
+    regex = re.compile(r".*(imdb|wikipedia).*", re.IGNORECASE)
+    gs = list(filter(regex.match, g_s))
+
+    # Clean and parse the filtered results
+    gs_parsed = [
+        re.sub(
+            r'\b(\-([a-zA-Z-\s])\-\simdb|(\-\s)?imdb|(\-\s)?wikipedia|\(|\)|\-|reviews|full|all|episode(s)?|film|movie|series)', 
+            '', i, flags=re.IGNORECASE
+        ) 
+        for i in gs
     ]
-    btn.append([InlineKeyboardButton(text="Close", callback_data=f'spol#{mv_id}#close_spellcheck')])
+
+    # If no parsed results, try to match and parse results with a different regex
+    if not gs_parsed:
+        reg = re.compile(r"watch(\s[a-zA-Z0-9_\s\-\(\)]*)*\|.*", re.IGNORECASE)
+        for mv in g_s:
+            match = reg.match(mv)
+            if match:
+                gs_parsed.append(match.group(1))
+
+    # Get the user ID
+    user = msg.from_user.id if msg.from_user else 0
+
+    # Remove duplicates from the parsed results
+    gs_parsed = list(dict.fromkeys(gs_parsed))
+
+    # Limit to the first 3 results if there are more than 3
+    if len(gs_parsed) > 3:
+        gs_parsed = gs_parsed[:3]
+
+    # If there are parsed results, search for movie titles on IMDb
+    movielist = []
+    if gs_parsed:
+        for mov in gs_parsed:
+            imdb_s = await get_poster(mov.strip(), bulk=True)
+            if imdb_s:
+                movielist += [movie.get('title') for movie in imdb_s]
+
+    # Further clean and deduplicate the movie list
+    movielist += [(re.sub(r'(\-|\(|\)|_)', '', i, flags=re.IGNORECASE)).strip() for i in gs_parsed]
+    movielist = list(dict.fromkeys(movielist))
+
+    # If no movies found, reply with an error message and return
+    if not movielist:
+        k = await msg.reply(
+            script.I_CUDNT.format(mv_rqst),
+            reply_markup=InlineKeyboardMarkup(button)
+        )
+        await asyncio.sleep(8)
+        return await k.delete()
+
+    # Store the found movies in a temporary variable
+    temp.GP_SPELL[msg.id] = movielist
+
+    # Create buttons for the found movies
+    btn = [
+        [InlineKeyboardButton(text=movie.strip(), callback_data=f"spolling#{user}#{k}")]
+        for k, movie in enumerate(movielist)
+    ]
+    btn.append([InlineKeyboardButton(text="Close", callback_data=f'spolling#{user}#close_spellcheck')])
+
+    # Reply with the found movies
     spell_check_del = await msg.reply(
         script.CUDNT_FND.format(mv_rqst),
         reply_markup=InlineKeyboardMarkup(btn)
     )
+
+    # Optionally delete the reply after a delay if auto-delete is enabled
     try:
         if settings['auto_delete']:
             await asyncio.sleep(30)
