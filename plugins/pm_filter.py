@@ -161,7 +161,7 @@ async def pm_AutoFilter(client, msg, pmspoll=False):
             files, offset, total_results = await get_search_results(message.chat.id, search.lower(), offset=0, filter=True)
             if not files:
                 if settings["spell_check"]:
-                    return await pm_advantage_spell_chok(client, msg)
+                    return await pm_spoll_choker(client, msg)
                 return
         else:
             return
