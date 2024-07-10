@@ -281,9 +281,13 @@ async def advantage_spell_chok(client, msg):
 
     # If no results found, reply with an error message and return
     if not g_s:
+        reqst_gle = mv_rqst.replace(" ", "+")
+        button = [[
+            InlineKeyboardButton("Gᴏᴏɢʟᴇ", url=f"https://www.google.com/search?q={reqst_gle}")
+        ]]
         k = await msg.reply(
             script.I_CUDNT.format(mv_rqst),
-            reply_markup=InlineKeyboardMarkup(btn)
+            reply_markup=InlineKeyboardMarkup(button)
         )
         await asyncio.sleep(10)
         await k.delete()
@@ -334,9 +338,13 @@ async def advantage_spell_chok(client, msg):
 
     # If no movies found, reply with an error message and return
     if not movielist:
+        reqst_gle = mv_rqst.replace(" ", "+")
+        button = [[
+            InlineKeyboardButton("Gᴏᴏɢʟᴇ", url=f"https://www.google.com/search?q={reqst_gle}")
+        ]]
         k = await msg.reply(
             script.I_CUDNT.format(mv_rqst),
-            reply_markup=InlineKeyboardMarkup(btn)
+            reply_markup=InlineKeyboardMarkup(button)
         )
         await asyncio.sleep(8)
         return await k.delete()
