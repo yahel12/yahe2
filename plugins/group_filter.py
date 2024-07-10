@@ -283,7 +283,7 @@ async def advantage_spell_chok(client, msg):
     if not g_s:
         k = await msg.reply(
             script.I_CUDNT.format(mv_rqst),
-            reply_markup=InlineKeyboardMarkup(button)
+            reply_markup=InlineKeyboardMarkup(btn)
         )
         await asyncio.sleep(10)
         await k.delete()
@@ -336,7 +336,7 @@ async def advantage_spell_chok(client, msg):
     if not movielist:
         k = await msg.reply(
             script.I_CUDNT.format(mv_rqst),
-            reply_markup=InlineKeyboardMarkup(button)
+            reply_markup=InlineKeyboardMarkup(btn)
         )
         await asyncio.sleep(8)
         return await k.delete()
