@@ -1,4 +1,4 @@
-import asyncio
+ import asyncio
 import re
 import ast
 import math
@@ -14,7 +14,7 @@ from info import MAX_B_TN
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaPhoto
 from pyrogram import Client, filters, enums
 from pyrogram.errors import FloodWait, UserIsBlocked, MessageNotModified, PeerIdInvalid
-from utils import get_size, get_poster, temp, get_settings
+from utils import get_size, get_poster, temp, get_settings, search_gagala
 from database.users_chats_db import db
 from database.ia_filterdb import Media, Media2, get_file_details, get_search_results, get_bad_files, db as clientDB, db2 as clientDB2
 from plugins.group_filter import global_filters
