@@ -308,9 +308,13 @@ async def pm_spoll_choker(client, msg):
 
     # If no results found, reply with a message and delete after 10 seconds
     if not g_s:
+        reqst_gle = mv_rqst.replace(" ", "+")
+        button = [[
+            InlineKeyboardButton("Gᴏᴏɢʟᴇ", url=f"https://www.google.com/search?q={reqst_gle}")
+        ]]        
         k = await msg.reply(
             script.I_CUDNT.format(mv_rqst),
-            reply_markup=InlineKeyboardMarkup(btn)
+            reply_markup=InlineKeyboardMarkup(button)
         )
         await asyncio.sleep(10)
         await k.delete()
@@ -361,9 +365,13 @@ async def pm_spoll_choker(client, msg):
 
     # If no movie titles found, reply with a message and delete after 30 seconds
     if not movielist:
+        reqst_gle = mv_rqst.replace(" ", "+")
+        button = [[
+            InlineKeyboardButton("Gᴏᴏɢʟᴇ", url=f"https://www.google.com/search?q={reqst_gle}")
+        ]]
         k = await msg.reply(
             script.I_CUDNT.format(mv_rqst),
-            reply_markup=InlineKeyboardMarkup(btn)
+            reply_markup=InlineKeyboardMarkup(button)
         )
         await asyncio.sleep(30)
         await k.delete()
@@ -382,8 +390,7 @@ async def pm_spoll_choker(client, msg):
     # Reply with the spell check results and buttons
     spell_check_del = await msg.reply(
         script.CUDNT_FND.format(mv_rqst),
-        reply_markup=InlineKeyboardMarkup(btn),
-        quote=True
+        reply_markup=InlineKeyboardMarkup(btn), quote=True
     )
 
     # Auto delete the spell check message if auto_delete is enabled
