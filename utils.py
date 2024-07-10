@@ -44,6 +44,7 @@ class temp(object):
     B_NAME = None
     SETTINGS = {}
     KEYWORD = {}
+    PM_SPELL = {}
 
 async def is_subscribed(bot, query=None, userid=None):
     try:
