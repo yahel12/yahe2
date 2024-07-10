@@ -287,7 +287,7 @@ async def handle_auto_delete(msg, original_msg, settings):
         await msg.delete()
         await original_msg.delete()
 
-async def pm_spoll_choker(msg):
+async def pm_spoll_choker(client, msg):
     mv_id = msg.id  # Get the message ID
     mv_rqst = msg.text  # Get the message text
 
@@ -310,7 +310,7 @@ async def pm_spoll_choker(msg):
     if not g_s:
         k = await msg.reply(
             script.I_CUDNT.format(mv_rqst),
-            reply_markup=InlineKeyboardMarkup(button)
+            reply_markup=InlineKeyboardMarkup(btn)
         )
         await asyncio.sleep(10)
         await k.delete()
@@ -363,7 +363,7 @@ async def pm_spoll_choker(msg):
     if not movielist:
         k = await msg.reply(
             script.I_CUDNT.format(mv_rqst),
-            reply_markup=InlineKeyboardMarkup(button)
+            reply_markup=InlineKeyboardMarkup(btn)
         )
         await asyncio.sleep(30)
         await k.delete()
