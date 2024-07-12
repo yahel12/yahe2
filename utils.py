@@ -52,13 +52,6 @@ class temp(object):
 # Cache dictionary
 search_cache = {}
 
-# List of user agents to rotate
-USER_AGENTS = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.128 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36',
-]
-
 async def is_subscribed(bot, query=None, userid=None):
     try:
         if userid == None and query != None:
@@ -156,44 +149,25 @@ async def get_poster(query, bulk=False, id=False, file=None):
 # https://github.com/odysseusmax/animated-lamp/blob/2ef4730eb2b5f0596ed6d03e7b05243d93e3415b/bot/utils/broadcast.py#L37
 
 async def search_gagala(text):
-    global USER_AGENTS
-    usr_agent = random.choice(USER_AGENTS)
-    headers = {
-        'User-Agent': usr_agent,
-    }
-    
-    text = text.replace(" ", '+')
-    
-    # Check if the result is already cached
-    if text in search_cache:
-        return search_cache[text]
-    
-    url = f'https://www.google.com/search?q={text}'
-    
     try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
+        usr_agent = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                          'Chrome/61.0.3163.100 Safari/537.36'
+        }
         
-        # Handle 429 Too Many Requests
-        if response.status_code == 429:
-            print(f"Received 429 status code. Too many requests. Retrying after delay...")
-            await asyncio.sleep(10)  # Adjust delay time as per Google's rate limiting policy
-            return await search_gagala(text)  # Retry after delay
+        text = text.replace(" ", '+')
+        url = f'https://www.google.com/search?q={text}'
+        
+        response = requests.get(url, headers=usr_agent)
+        response.raise_for_status()  # Raise HTTPError for bad responses
         
         soup = BeautifulSoup(response.text, 'html.parser')
         titles = soup.find_all('h3')
-        results = [title.getText() for title in titles]
         
-        # Cache the results
-        search_cache[text] = results
-        
-        # Add delay between requests to avoid rate limiting
-        await asyncio.sleep(random.uniform(1, 3))  # Random delay between 1 to 3 seconds
-        
-        return results
+        return [title.getText() for title in titles]
     
-    except requests.exceptions.HTTPError as e:
-        print(f"HTTP Error: {e}")
+    except requests.exceptions.RequestException as e:
+        print(f"Request error occurred: {e}")
         return []
     
     except Exception as e:
