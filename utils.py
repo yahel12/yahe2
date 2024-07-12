@@ -44,6 +44,7 @@ class temp(object):
     B_NAME = None
     SETTINGS = {}
     KEYWORD = {}
+    PM_SPELL_CHECK = {}
     PM_SPELL = {}
     GP_SPELL = {}
 
