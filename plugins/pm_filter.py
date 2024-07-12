@@ -142,7 +142,7 @@ async def pm_spoll_tester(bot, query):
         k = (movie, files, offset, total_results)
         await pm_AutoFilter(bot, query, k)
     else:
-        k = await query.message.edit('The file you are looking for is not available on my Database or might not be released yet 💌\n\nFirst of all, Read the pinned message and follow the instructions and examples I gave there.\n\nif its still unavailable, then Use @mcrequestbot to request for it. please make sure you follow the request format there or my owner will skip your request. Thank youuu 🥰')
+        k = await query.message.edit('The file you are looking for is not available on my Database or might not be released yet 💌')
         await asyncio.sleep(20)
         await k.delete()
 
