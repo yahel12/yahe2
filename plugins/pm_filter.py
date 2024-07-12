@@ -53,6 +53,7 @@ async def pm_next_page(bot, query):
         await query.answer(script.OLD_ALRT_TXT.format(query.from_user.first_name), show_alert=True)
         return
 
+    # Get files and pagination info
     files, n_offset, total = await get_search_results(query.message.chat.id, search, offset=offset, filter=True)
 
     try:
@@ -65,6 +66,7 @@ async def pm_next_page(bot, query):
 
     settings = await get_settings(query.message.chat.id)
 
+    # Prepare buttons
     btn = [
         [
             InlineKeyboardButton(
@@ -98,6 +100,7 @@ async def pm_next_page(bot, query):
     else:
         off_set = offset - max_b_tn_value
 
+    # Adjust pagination buttons based on offsets
     if n_offset == 0:
         btn.append(
             [InlineKeyboardButton("«« 𝕻𝖗𝖊𝖛𝖎𝖔𝖚𝖘", callback_data=f"pmnext_{req}_{key}_{off_set}"),
@@ -115,9 +118,13 @@ async def pm_next_page(bot, query):
         ])
 
     try:
+        # Attempt to edit the message's reply markup
         await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(btn))
     except MessageNotModified:
         pass
+    except Exception as e:
+        print(f"Error editing message reply markup: {e}")
+
 
 
 @Client.on_callback_query(filters.create(lambda _, __, query: query.data.startswith("pmspolling")))
