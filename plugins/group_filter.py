@@ -3,7 +3,7 @@ import pyrogram
 from pyrogram.errors.exceptions.bad_request_400 import MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty
 from Script import script 
 from database.connections_mdb import active_connection, all_connections, delete_connection, if_active, make_active, make_inactive
-from info import ADMINS, AUTH_CHANNEL, AUTH_USERS, CUSTOM_FILE_CAPTION, MSG_ALRT, GRP_LNK, CHNL_LNK, LOG_CHANNEL, MAX_B_TN
+from info import SPELL_CHECK_REPLY, ADMINS, AUTH_CHANNEL, AUTH_USERS, CUSTOM_FILE_CAPTION, MSG_ALRT, GRP_LNK, CHNL_LNK, LOG_CHANNEL, MAX_B_TN
 
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from pyrogram import Client, filters, enums 
@@ -260,123 +260,121 @@ async def handle_auto_delete(msg, original_msg, settings):
         await original_msg.delete()
 
 async def advantage_spell_chok(client, msg):
-    # Extract message ID and text
     mv_id = msg.id
     mv_rqst = msg.text
-
-    # Fetch settings for the chat
-    settings = await get_settings(msg.chat.id)
-
-    # Clean the query from unnecessary words and add "movie" to it
+    # Remove common unwanted words from the message text and prepare a search query
     query = re.sub(
-        r"\b(pl(i|e)*?(s|z+|ease|se|ese|(e+)s(e)?)|((send|snd|giv(e)?|gib)(\sme)?)|movie(s)?|new|latest|br((o|u)h?)*|^h(e|a)?(l)*(o)*|mal(ayalam)?|t(h)?amil|file|that|find|und(o)*|kit(t(i|y)?)?o(w)?|thar(u)?(o)*w?|kittum(o)*|aya(k)*(um(o)*)?|full\smovie|any(one)|with\ssubtitle(s)?)",
-        "", msg.text, flags=re.IGNORECASE
+        r"\b(pl(i|e)*?(s|z+|ease|se|ese|(e+)s(e)?)|"
+        r"((send|snd|giv(e)?|gib)(\sme)?)|"
+        r"movie(s)?|new|latest|br((o|u)h?)*|"
+        r"^h(e|a)?(l)*(o)*|mal(ayalam)?|t(h)?amil|"
+        r"file|that|find|und(o)*|kit(t(i|y)?)?o(w)?|"
+        r"thar(u)?(o)*w?|kittum(o)*|aya(k)*(um(o)*)?|"
+        r"full\smovie|any(one)|with\ssubtitle(s)?)", 
+        "", 
+        mv_rqst, 
+        flags=re.IGNORECASE
     )
+    
+    # Strip leading/trailing whitespace and add "movie" to the query
     query = query.strip() + " movie"
-
-    # Search using the cleaned query and the original message text
+    
+    # Perform two searches with the query
     g_s = await search_gagala(query)
-    g_s += await search_gagala(msg.text)
+    g_s += await search_gagala(mv_rqst)
+    
     gs_parsed = []
-
-    # If no results found, reply with an error message and return
+    
+    # If no search results are found, reply with an error message and delete it after 20 seconds
     if not g_s:
         reqst_gle = mv_rqst.replace(" ", "+")
-        button = [[
-            InlineKeyboardButton("Gᴏᴏɢʟᴇ", url=f"https://www.google.com/search?q={reqst_gle}")
-        ]]
-        k = await msg.reply(
-            script.I_CUDNT.format(mv_rqst),
-            reply_markup=InlineKeyboardMarkup(button)
-        )
-        await asyncio.sleep(10)
+        button = [[InlineKeyboardButton("Gᴏᴏɢʟᴇ", url=f"https://www.google.com/search?q={reqst_gle}")]]
+        k = await msg.reply(script.I_CUDNT.format(mv_rqst), reply_markup=InlineKeyboardMarkup(button))
+        await asyncio.sleep(20)
         await k.delete()
         return
-
-    # Filter results to only include IMDb or Wikipedia links
+    
+    # Compile a regular expression to filter IMDb or Wikipedia results
     regex = re.compile(r".*(imdb|wikipedia).*", re.IGNORECASE)
+    
+    # Filter the search results to include only IMDb or Wikipedia links
     gs = list(filter(regex.match, g_s))
-
-    # Clean and parse the filtered results
+    
+    # Clean up the filtered results by removing unnecessary words and characters
     gs_parsed = [
         re.sub(
-            r'\b(\-([a-zA-Z-\s])\-\simdb|(\-\s)?imdb|(\-\s)?wikipedia|\(|\)|\-|reviews|full|all|episode(s)?|film|movie|series)', 
-            '', i, flags=re.IGNORECASE
+            r'\b(\-([a-zA-Z-\s])\-\simdb|(\-\s)?imdb|(\-\s)?wikipedia|\(|\)|\-|'
+            r'reviews|full|all|episode(s)?|film|movie|series)', 
+            '', 
+            i, 
+            flags=re.IGNORECASE
         ) 
         for i in gs
     ]
-
-    # If no parsed results, try to match and parse results with a different regex
+    
+    # If no cleaned results are found, try to match patterns like "Watch Niram | Amazon Prime"
     if not gs_parsed:
         reg = re.compile(r"watch(\s[a-zA-Z0-9_\s\-\(\)]*)*\|.*", re.IGNORECASE)
         for mv in g_s:
             match = reg.match(mv)
             if match:
                 gs_parsed.append(match.group(1))
-
-    # Get the user ID
+    
+    # Get the user ID from the message
     user = msg.from_user.id if msg.from_user else 0
-
-    # Remove duplicates from the parsed results
+    
+    movielist = []
+    
+    # Remove duplicates from the cleaned results
     gs_parsed = list(dict.fromkeys(gs_parsed))
-
-    # Limit to the first 3 results if there are more than 3
+    
+    # Limit the number of results to 3
     if len(gs_parsed) > 3:
         gs_parsed = gs_parsed[:3]
-
-    # If there are parsed results, search for movie titles on IMDb
-    movielist = []
+    
+    # If there are cleaned results, search for posters on IMDb
     if gs_parsed:
         for mov in gs_parsed:
             imdb_s = await get_poster(mov.strip(), bulk=True)
             if imdb_s:
                 movielist += [movie.get('title') for movie in imdb_s]
-
-    # Further clean and deduplicate the movie list
+    
+    # Further clean the movie list by removing unwanted characters
     movielist += [(re.sub(r'(\-|\(|\)|_)', '', i, flags=re.IGNORECASE)).strip() for i in gs_parsed]
+    
+    # Remove duplicates from the final movie list
     movielist = list(dict.fromkeys(movielist))
-
-    # If no movies found, reply with an error message and return
+    
+    # If no movies are found, reply with an error message and delete it after 20 seconds
     if not movielist:
         reqst_gle = mv_rqst.replace(" ", "+")
-        button = [[
-            InlineKeyboardButton("Gᴏᴏɢʟᴇ", url=f"https://www.google.com/search?q={reqst_gle}")
-        ]]
-        k = await msg.reply(
-            script.I_CUDNT.format(mv_rqst),
-            reply_markup=InlineKeyboardMarkup(button)
-        )
-        await asyncio.sleep(8)
-        return await k.delete()
-
-    # Store the found movies in a temporary variable
-    temp.GP_SPELL[msg.id] = movielist
-
-    # Create buttons for the found movies
+        button = [[InlineKeyboardButton("Gᴏᴏɢʟᴇ", url=f"https://www.google.com/search?q={reqst_gle}")]]
+        k = await msg.reply(script.I_CUDNT.format(mv_rqst), reply_markup=InlineKeyboardMarkup(button))
+        await asyncio.sleep(20)
+        await k.delete()
+        return
+    
+    # Store the movie list in a temporary dictionary
+    temp.GP_SPELL[mv_id] = movielist
+    
+    # Create buttons for each movie suggestion
     btn = [
         [InlineKeyboardButton(text=movie.strip(), callback_data=f"spolling#{user}#{k}")]
         for k, movie in enumerate(movielist)
     ]
+    
+    # Add a "Close" button
     btn.append([InlineKeyboardButton(text="Close", callback_data=f'spolling#{user}#close_spellcheck')])
-
-    # Reply with the found movies
-    spell_check_del = await msg.reply(
-        script.CUDNT_FND.format(mv_rqst),
+    
+    # Reply with the movie suggestions and the buttons
+    reply_msg = await msg.reply(
+        "I Couldn't Find Anything Related To That. Did You Mean Any One Of These?", 
         reply_markup=InlineKeyboardMarkup(btn)
     )
-
-    # Optionally delete the reply after a delay if auto-delete is enabled
-    try:
-        if settings['auto_delete']:
-            await asyncio.sleep(30)
-            await spell_check_del.delete()
-    except KeyError:
-        grpid = await active_connection(str(msg.from_user.id))
-        await save_group_settings(grpid, 'auto_delete', True)
-        settings = await get_settings(msg.chat.id)
-        if settings['auto_delete']:
-            await asyncio.sleep(30)
-            await spell_check_del.delete()
+    
+    # Wait for 30 seconds and then delete the message
+    await asyncio.sleep(30)
+    await reply_msg.delete()
 
 
 async def manual_filters(client, message, text=False):
