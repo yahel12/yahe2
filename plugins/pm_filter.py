@@ -10,7 +10,7 @@ from pyrogram.errors.exceptions.bad_request_400 import MediaEmpty, PhotoInvalidD
 from Script import script
 from database.connections_mdb import active_connection, all_connections, delete_connection, if_active, make_active, \
     make_inactive
-from info import MAX_B_TN
+from info import MAX_B_TN, SPELL_CHECK_REPLY
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaPhoto
 from pyrogram import Client, filters, enums
 from pyrogram.errors import FloodWait, UserIsBlocked, MessageNotModified, PeerIdInvalid
@@ -143,9 +143,9 @@ async def pm_spoll_tester(bot, query):
         k = (movie, files, offset, total_results)
         await pm_AutoFilter(bot, query, k)
     else:
-        # If no files are found, edit the message to show an error and delete after 10 seconds
+        # If no files are found, edit the message to show an error and delete after 20 seconds
         k = await query.message.edit(script.MVE_NT_FND)
-        await asyncio.sleep(10)
+        await asyncio.sleep(20)
         await k.delete()
 
    
@@ -288,121 +288,120 @@ async def handle_auto_delete(msg, original_msg, settings):
         await original_msg.delete()
 
 async def pm_spoll_choker(client, msg):
-    mv_id = msg.id  # Get the message ID
-    mv_rqst = msg.text  # Get the message text
-
-    # Get chat settings
-    settings = await get_settings(msg.chat.id)
-
-    # Remove common words from the query
+    mv_id = msg.id
+    mv_rqst = msg.text
+    # Remove common unwanted words from the message text and prepare a search query
     query = re.sub(
-        r"\b(pl(i|e)*?(s|z+|ease|se|ese|(e+)s(e)?)|((send|snd|giv(e)?|gib)(\sme)?)|movie(s)?|new|latest|br((o|u)h?)*|^h(e|a)?(l)*(o)*|mal(ayalam)?|t(h)?amil|file|that|find|und(o)*|kit(t(i|y)?)?o(w)?|thar(u)?(o)*w?|kittum(o)*|aya(k)*(um(o)*)?|full\smovie|any(one)|with\ssubtitle(s)?)",
-        "", msg.text, flags=re.IGNORECASE
+        r"\b(pl(i|e)*?(s|z+|ease|se|ese|(e+)s(e)?)|"
+        r"((send|snd|giv(e)?|gib)(\sme)?)|"
+        r"movie(s)?|new|latest|br((o|u)h?)*|"
+        r"^h(e|a)?(l)*(o)*|mal(ayalam)?|t(h)?amil|"
+        r"file|that|find|und(o)*|kit(t(i|y)?)?o(w)?|"
+        r"thar(u)?(o)*w?|kittum(o)*|aya(k)*(um(o)*)?|"
+        r"full\smovie|any(one)|with\ssubtitle(s)?)", 
+        "", 
+        mv_rqst, 
+        flags=re.IGNORECASE
     )
+    
+    # Strip leading/trailing whitespace and add "movie" to the query
     query = query.strip() + " movie"
-
-    # Search for results using the processed query
+    
+    # Perform two searches with the query
     g_s = await search_gagala(query)
-    g_s += await search_gagala(msg.text)
+    g_s += await search_gagala(mv_rqst)
+    
     gs_parsed = []
-
-    # If no results found, reply with a message and delete after 10 seconds
+    
+    # If no search results are found, reply with an error message and delete it after 20 seconds
     if not g_s:
         reqst_gle = mv_rqst.replace(" ", "+")
-        button = [[
-            InlineKeyboardButton("Gᴏᴏɢʟᴇ", url=f"https://www.google.com/search?q={reqst_gle}")
-        ]]        
-        k = await msg.reply(
-            script.I_CUDNT.format(mv_rqst),
-            reply_markup=InlineKeyboardMarkup(button)
-        )
-        await asyncio.sleep(10)
+        button = [[InlineKeyboardButton("Google", url=f"https://www.google.com/search?q={reqst_gle}")]]
+        k = await msg.reply(script.I_CUDNT.format(mv_rqst), reply_markup=InlineKeyboardMarkup(button))
+        await asyncio.sleep(20)
         await k.delete()
         return
-
-    # Filter results for IMDb or Wikipedia links
+    
+    # Compile a regular expression to filter IMDb or Wikipedia results
     regex = re.compile(r".*(imdb|wikipedia).*", re.IGNORECASE)
+    
+    # Filter the search results to include only IMDb or Wikipedia links
     gs = list(filter(regex.match, g_s))
-
-    # Remove unnecessary parts from the filtered results
+    
+    # Clean up the filtered results by removing unnecessary words and characters
     gs_parsed = [
         re.sub(
-            r'\b(\-([a-zA-Z-\s])\-\simdb|(\-\s)?imdb|(\-\s)?wikipedia|\(|\)|\-|reviews|full|all|episode(s)?|film|movie|series)', 
-            '', i, flags=re.IGNORECASE
+            r'\b(\-([a-zA-Z-\s])\-\simdb|(\-\s)?imdb|(\-\s)?wikipedia|\(|\)|\-|'
+            r'reviews|full|all|episode(s)?|film|movie|series)', 
+            '', 
+            i, 
+            flags=re.IGNORECASE
         ) 
         for i in gs
     ]
-
-    # If still no parsed results, use a different regex to match certain patterns
+    
+    # If no cleaned results are found, try to match patterns like "Watch Niram | Amazon Prime"
     if not gs_parsed:
         reg = re.compile(r"watch(\s[a-zA-Z0-9_\s\-\(\)]*)*\|.*", re.IGNORECASE)
         for mv in g_s:
             match = reg.match(mv)
             if match:
                 gs_parsed.append(match.group(1))
-
-    # Get the user ID
+    
+    # Get the user ID from the message
     user = msg.from_user.id if msg.from_user else 0
-
-    # Remove duplicate results
+    
+    movielist = []
+    
+    # Remove duplicates from the cleaned results
     gs_parsed = list(dict.fromkeys(gs_parsed))
-
+    
     # Limit the number of results to 3
     if len(gs_parsed) > 3:
         gs_parsed = gs_parsed[:3]
-
-    # Search IMDb for each keyword and collect movie titles
-    movielist = []
+    
+    # If there are cleaned results, search for posters on IMDb
     if gs_parsed:
         for mov in gs_parsed:
             imdb_s = await get_poster(mov.strip(), bulk=True)
             if imdb_s:
                 movielist += [movie.get('title') for movie in imdb_s]
-
-    # Further clean up the movie titles
+    
+    # Further clean the movie list by removing unwanted characters
     movielist += [(re.sub(r'(\-|\(|\)|_)', '', i, flags=re.IGNORECASE)).strip() for i in gs_parsed]
+    
+    # Remove duplicates from the final movie list
     movielist = list(dict.fromkeys(movielist))
-
-    # If no movie titles found, reply with a message and delete after 30 seconds
+    
+    # If no movies are found, reply with an error message and delete it after 20 seconds
     if not movielist:
         reqst_gle = mv_rqst.replace(" ", "+")
-        button = [[
-            InlineKeyboardButton("Gᴏᴏɢʟᴇ", url=f"https://www.google.com/search?q={reqst_gle}")
-        ]]
-        k = await msg.reply(
-            script.I_CUDNT.format(mv_rqst),
-            reply_markup=InlineKeyboardMarkup(button)
-        )
-        await asyncio.sleep(30)
+        button = [[InlineKeyboardButton("Google", url=f"https://www.google.com/search?q={reqst_gle}")]]
+        k = await msg.reply(script.I_CUDNT.format(mv_rqst), reply_markup=InlineKeyboardMarkup(button))
+        await asyncio.sleep(20)
         await k.delete()
         return
-
+    
     # Store the movie list in a temporary dictionary
-    temp.PM_SPELL[str(msg.id)] = movielist
-
-    # Create inline keyboard buttons for each movie title
+    temp.PM_SPELL[mv_id] = movielist
+    
+    # Create buttons for each movie suggestion
     btn = [
         [InlineKeyboardButton(text=movie.strip(), callback_data=f"pmspolling#{user}#{k}")]
         for k, movie in enumerate(movielist)
     ]
+    
+    # Add a "Close" button
     btn.append([InlineKeyboardButton(text="Close", callback_data=f'pmspolling#{user}#close_spellcheck')])
-
-    # Reply with the spell check results and buttons
-    spell_check_del = await msg.reply(
-        script.CUDNT_FND.format(mv_rqst),
-        reply_markup=InlineKeyboardMarkup(btn), quote=True
+    
+    # Reply with the movie suggestions and the buttons
+    reply_msg = await msg.reply(
+        "I Couldn't Find Anything Related To That. Did You Mean Any One Of These?", 
+        reply_markup=InlineKeyboardMarkup(btn)
     )
+    
+    # Wait for 30 seconds and then delete the message
+    await asyncio.sleep(30)
+    await reply_msg.delete()
 
-    # Auto delete the spell check message if auto_delete is enabled
-    try:
-        if settings['auto_delete']:
-            await asyncio.sleep(10)
-            await spell_check_del.delete()
-    except KeyError:
-        grpid = await active_connection(str(msg.from_user.id))
-        await save_group_settings(grpid, 'auto_delete', True)
-        settings = await get_settings(msg.chat.id)
-        if settings['auto_delete']:
-            await asyncio.sleep(10)
-            await spell_check_del.delete()
 
