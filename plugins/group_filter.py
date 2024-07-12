@@ -339,12 +339,8 @@ async def advantage_spell_chok(client, msg):
         )
     ] for k, movie in enumerate(movielist)]
     btn.append([InlineKeyboardButton(text="Close", callback_data=f'spolling#{user}#close_spellcheck')])
-    # Reply with the movie suggestions and the buttons
-    reply_msg = await msg.reply("<b>I couldn't find anything related to that</b>\n\n𝙸𝚏 𝚝𝚑𝚎 𝚏𝚒𝚕𝚎 𝚢𝚘𝚞 𝚠𝚊𝚗𝚝 𝚒𝚜 𝚝𝚑𝚎 𝚘𝚗𝚎 𝚋𝚎𝚕𝚘𝚠, 𝚌𝚕𝚒𝚌𝚔 𝚘𝚗 𝚒𝚝", reply_markup=InlineKeyboardMarkup(btn))
-    
-    # Wait for 30 seconds and then delete the message
-    await asyncio.sleep(30)
-    await reply_msg.delete()
+    await msg.reply("<b>💔 I couldn't find anything related to that</b>\n\n𝙸𝚏 𝚝𝚑𝚎 𝚏𝚒𝚕𝚎 𝚢𝚘𝚞 𝚠𝚊𝚗𝚝 𝚒𝚜 𝚝𝚑𝚎 𝚘𝚗𝚎 𝚋𝚎𝚕𝚘𝚠, 𝚌𝚕𝚒𝚌𝚔 𝚘𝚗 𝚒𝚝",
+                    reply_markup=InlineKeyboardMarkup(btn))
 
 
 
