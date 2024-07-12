@@ -129,38 +129,25 @@ async def next_page(bot, query):
 @Client.on_callback_query(filters.regex(r"^spolling"))
 async def advantage_spoll_choker(bot, query):
     _, user, movie_ = query.data.split('#')
-    
     if int(user) != 0 and query.from_user.id != int(user):
-        return await query.answer("Processing", show_alert=True)
-    
+        return await query.answer("okDa", show_alert=True)
     if movie_ == "close_spellcheck":
         return await query.message.delete()
-    
     movies = SPELL_CHECK.get(query.message.reply_to_message.id)
-    
     if not movies:
-        return await query.answer("Link expired kindly please search again 🙂.", show_alert=True)
-    
-    try:
-        movie = movies[int(movie_)]
-    except (IndexError, ValueError):
-        return await query.answer("Invalid movie selection.", show_alert=True)
-    
-    await query.answer('I am checking for the file on my database.⏳')
-    
-    try:
+        return await query.answer("𝐋𝐢𝐧𝐤 𝐄𝐱𝐩𝐢𝐫𝐞𝐝 𝐊𝐢𝐧𝐝𝐥𝐲 𝐏𝐥𝐞𝐚𝐬𝐞 𝐒𝐞𝐚𝐫𝐜𝐡 𝐀𝐠𝐚𝐢𝐧 🙂.", show_alert=True)
+    movie = movies[(int(movie_))]
+    await query.answer('𝙸 𝙰𝙼 𝙲𝙷𝙴𝙲𝙺𝙸𝙽𝙶 𝙵𝙾𝚁 𝚃𝙷𝙴 𝙵𝙸𝙻𝙴 𝙾𝙽 𝙼𝚈 𝙳𝙰𝚃𝙰𝙱𝙰𝚂𝙴...⏳')
+    k = await manual_filters(bot, query.message, text=movie)
+    if k == False:
         files, offset, total_results = await get_search_results(query.message.chat.id, search, offset=offset, filter=True)
-    except Exception as e:
-        await query.answer(f"Error occurred while searching: {e}", show_alert=True)
-        return
-    
-    if files:
-        k = (movie, files, offset, total_results)
-        await auto_filter(bot, query, k)
-    else:
-        k = await query.message.edit('The file you are looking for is not available on my Database or might not be released yet.')
-        await asyncio.sleep(20)
-        await k.delete()
+        if files:
+            k = (movie, files, offset, total_results)
+            await auto_filter(bot, query, k)
+        else:
+            k = await query.message.edit('The file you are looking for is not available on my Database or might not be released yet 💌')
+            await asyncio.sleep(20)
+            await k.delete()
 
 
 
