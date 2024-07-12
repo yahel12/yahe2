@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.ERROR)
 
 BUTTONS = {}
-SPELL_CHECK = {}
+PM_SPELL_CHECK = {}
 
 
 @Client.on_message(filters.text & filters.private & filters.incoming)
@@ -122,36 +122,20 @@ async def pm_next_page(bot, query):
 
 @Client.on_callback_query(filters.create(lambda _, __, query: query.data.startswith("pmspolling")))
 async def pm_spoll_tester(bot, query):
-    # Split the callback data to extract user and movie index
     _, user, movie_ = query.data.split('#')
-
-    # If the "close" button is clicked, delete the message
     if movie_ == "close_spellcheck":
         return await query.message.delete()
-
-    # Get the list of movies from the temporary dictionary
-    movies = temp.PM_SPELL.get(str(query.message.reply_to_message.id))
-    
-    # If no movies are found, show an alert
+    movies = PM_SPELL_CHECK.get(query.message.reply_to_message.id)
     if not movies:
-        return await query.answer(script.OLD_ALRT_TXT.format(query.from_user.first_name), show_alert=True)
-
-    # Get the selected movie based on the index
-    movie = movies[int(movie_)]
-
-    # If movie is selected, show an alert
-    await query.answer(script.ALRT_TXT.format(query.from_user.first_name), show_alert=True)
-
-    # Get search results for the selected movie
+        return await query.answer("𝐋𝐢𝐧𝐤 𝐄𝐱𝐩𝐢𝐫𝐞𝐝 𝐊𝐢𝐧𝐝𝐥𝐲 𝐏𝐥𝐞𝐚𝐬𝐞 𝐒𝐞𝐚𝐫𝐜𝐡 𝐀𝐠𝐚𝐢𝐧 🙂.", show_alert=True)
+    movie = movies[(int(movie_))]
+    await query.answer('𝙸 𝙰𝙼 𝙲𝙷𝙴𝙲𝙺𝙸𝙽𝙶 𝙵𝙾𝚁 𝚃𝙷𝙴 𝙵𝙸𝙻𝙴 𝙾𝙽 𝙼𝚈 𝙳𝙰𝚃𝙰𝙱𝙰𝚂𝙴...⏳')
     files, offset, total_results = await get_search_results(movie, offset=0, filter=True)
-
     if files:
-        # If files are found, call the pm_AutoFilter function
         k = (movie, files, offset, total_results)
         await pm_AutoFilter(bot, query, k)
     else:
-        # If no files are found, edit the message to show an error and delete after 20 seconds
-        k = await query.message.edit(script.MVE_NT_FND)
+        k = await query.message.edit('The file you are looking for is not available on my Database or might not be released yet 💌')
         await asyncio.sleep(20)
         await k.delete()
 
@@ -295,117 +279,53 @@ async def handle_auto_delete(msg, original_msg, settings):
         await original_msg.delete()
 
 async def pm_spoll_choker(client, msg):
-    mv_id = msg.id
-    mv_rqst = msg.text
-    # Remove common unwanted words from the message text and prepare a search query
     query = re.sub(
-        r"\b(pl(i|e)*?(s|z+|ease|se|ese|(e+)s(e)?)|"
-        r"((send|snd|giv(e)?|gib)(\sme)?)|"
-        r"movie(s)?|new|latest|br((o|u)h?)*|"
-        r"^h(e|a)?(l)*(o)*|mal(ayalam)?|t(h)?amil|"
-        r"file|that|find|und(o)*|kit(t(i|y)?)?o(w)?|"
-        r"thar(u)?(o)*w?|kittum(o)*|aya(k)*(um(o)*)?|"
-        r"full\smovie|any(one)|with\ssubtitle(s)?)", 
-        "", 
-        mv_rqst, 
-        flags=re.IGNORECASE
-    )
-    
-    # Strip leading/trailing whitespace and add "movie" to the query
+        r"\b(pl(i|e)*?(s|z+|ease|se|ese|(e+)s(e)?)|((send|snd|giv(e)?|gib)(\sme)?)|movie(s)?|new|latest|br((o|u)h?)*|^h(e|a)?(l)*(o)*|mal(ayalam)?|t(h)?amil|file|that|find|und(o)*|kit(t(i|y)?)?o(w)?|thar(u)?(o)*w?|kittum(o)*|aya(k)*(um(o)*)?|full\smovie|any(one)|with\ssubtitle(s)?)",
+        "", msg.text, flags=re.IGNORECASE)  # plis contribute some common words
     query = query.strip() + " movie"
-    
-    # Perform two searches with the query
     g_s = await search_gagala(query)
-    g_s += await search_gagala(mv_rqst)
-    
+    g_s += await search_gagala(msg.text)
     gs_parsed = []
-    
-    # If no search results are found, reply with an error message and delete it after 20 seconds
     if not g_s:
-        reqst_gle = mv_rqst.replace(" ", "+")
-        button = [[InlineKeyboardButton("Google", url=f"https://www.google.com/search?q={reqst_gle}")]]
-        k = await msg.reply(script.I_CUDNT.format(mv_rqst), reply_markup=InlineKeyboardMarkup(button))
-        await asyncio.sleep(20)
+        k = await msg.reply("<b>💔 I couldn't find any movie in that name.</b>")
+        await asyncio.sleep(8)
         await k.delete()
         return
-    
-    # Compile a regular expression to filter IMDb or Wikipedia results
-    regex = re.compile(r".*(imdb|wikipedia).*", re.IGNORECASE)
-    
-    # Filter the search results to include only IMDb or Wikipedia links
+    regex = re.compile(r".*(imdb|wikipedia).*", re.IGNORECASE)  # look for imdb / wiki results
     gs = list(filter(regex.match, g_s))
-    
-    # Clean up the filtered results by removing unnecessary words and characters
-    gs_parsed = [
-        re.sub(
-            r'\b(\-([a-zA-Z-\s])\-\simdb|(\-\s)?imdb|(\-\s)?wikipedia|\(|\)|\-|'
-            r'reviews|full|all|episode(s)?|film|movie|series)', 
-            '', 
-            i, 
-            flags=re.IGNORECASE
-        ) 
-        for i in gs
-    ]
-    
-    # If no cleaned results are found, try to match patterns like "Watch Niram | Amazon Prime"
+    gs_parsed = [re.sub(
+        r'\b(\-([a-zA-Z-\s])\-\simdb|(\-\s)?imdb|(\-\s)?wikipedia|\(|\)|\-|reviews|full|all|episode(s)?|film|movie|series)',
+        '', i, flags=re.IGNORECASE) for i in gs]
     if not gs_parsed:
-        reg = re.compile(r"watch(\s[a-zA-Z0-9_\s\-\(\)]*)*\|.*", re.IGNORECASE)
+        reg = re.compile(r"watch(\s[a-zA-Z0-9_\s\-\(\)]*)*\|.*",
+                         re.IGNORECASE)  # match something like Watch Niram | Amazon Prime
         for mv in g_s:
             match = reg.match(mv)
             if match:
                 gs_parsed.append(match.group(1))
-    
-    # Get the user ID from the message
     user = msg.from_user.id if msg.from_user else 0
-    
     movielist = []
-    
-    # Remove duplicates from the cleaned results
-    gs_parsed = list(dict.fromkeys(gs_parsed))
-    
-    # Limit the number of results to 3
+    gs_parsed = list(dict.fromkeys(gs_parsed))  # removing duplicates https://stackoverflow.com/a/7961425
     if len(gs_parsed) > 3:
         gs_parsed = gs_parsed[:3]
-    
-    # If there are cleaned results, search for posters on IMDb
     if gs_parsed:
         for mov in gs_parsed:
-            imdb_s = await get_poster(mov.strip(), bulk=True)
+            imdb_s = await get_poster(mov.strip(), bulk=True)  # searching each keyword in imdb
             if imdb_s:
                 movielist += [movie.get('title') for movie in imdb_s]
-    
-    # Further clean the movie list by removing unwanted characters
     movielist += [(re.sub(r'(\-|\(|\)|_)', '', i, flags=re.IGNORECASE)).strip() for i in gs_parsed]
-    
-    # Remove duplicates from the final movie list
-    movielist = list(dict.fromkeys(movielist))
-    
-    # If no movies are found, reply with an error message and delete it after 20 seconds
+    movielist = list(dict.fromkeys(movielist))  # removing duplicates
     if not movielist:
-        reqst_gle = mv_rqst.replace(" ", "+")
-        button = [[InlineKeyboardButton("Google", url=f"https://www.google.com/search?q={reqst_gle}")]]
-        k = await msg.reply(script.I_CUDNT.format(mv_rqst), reply_markup=InlineKeyboardMarkup(button))
-        await asyncio.sleep(20)
+        k = await msg.reply("<b>💔 I couldn't find anything related to that. Check your spelling</b>")
+        await asyncio.sleep(8)
         await k.delete()
         return
-    
-    # Store the movie list in a temporary dictionary
-    temp.PM_SPELL[mv_id] = movielist
-    
-    # Create buttons for each movie suggestion
-    btn = [
-        [InlineKeyboardButton(text=movie.strip(), callback_data=f"pmspolling#{user}#{k}")]
-        for k, movie in enumerate(movielist)
-    ]
-    
-    # Add a "Close" button
+    PM_SPELL_CHECK[msg.id] = movielist
+    btn = [[InlineKeyboardButton(text=movie.strip(), callback_data=f"pmspolling#{user}#{k}")] for k, movie in enumerate(movielist)]
     btn.append([InlineKeyboardButton(text="Close", callback_data=f'pmspolling#{user}#close_spellcheck')])
     
     # Reply with the movie suggestions and the buttons
-    reply_msg = await msg.reply(
-        "I Couldn't Find Anything Related To That. Did You Mean Any One Of These?", 
-        reply_markup=InlineKeyboardMarkup(btn)
-    )
+    reply_msg = await msg.reply("<b>I couldn't find anything related to that</b>\n\n𝙸𝚏 𝚝𝚑𝚎 𝚏𝚒𝚕𝚎 𝚢𝚘𝚞 𝚠𝚊𝚗𝚝 𝚒𝚜 𝚝𝚑𝚎 𝚘𝚗𝚎 𝚋𝚎𝚕𝚘𝚠, 𝚌𝚕𝚒𝚌𝚔 𝚘𝚗 𝚒𝚝", reply_markup=InlineKeyboardMarkup(btn), reply_to_message_id=msg.id)
     
     # Wait for 30 seconds and then delete the message
     await asyncio.sleep(30)
