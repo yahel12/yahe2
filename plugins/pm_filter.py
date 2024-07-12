@@ -130,34 +130,19 @@ async def pm_next_page(bot, query):
 @Client.on_callback_query(filters.create(lambda _, __, query: query.data.startswith("pmspolling")))
 async def pm_spoll_tester(bot, query):
     _, user, movie_ = query.data.split('#')
-    
     if movie_ == "close_spellcheck":
         return await query.message.delete()
-    
     movies = PM_SPELL_CHECK.get(query.message.reply_to_message.id)
-    
     if not movies:
-        return await query.answer("𝐋𝐢𝐧𝐤 𝐄𝐱𝐩𝐢𝐫𝐞𝐝 𝐊𝐢𝐧𝐝𝐥𝐲 𝐏𝐥𝐞𝐚𝐬𝐞 𝐒𝐞𝐚𝐫𝐜𝐡 𝐀𝐠𝐚𝐢𝐧 🙂", show_alert=True)
-    
-    try:
-        movie = movies[int(movie_)]
-    except (IndexError, ValueError):
-        return await query.answer("Invalid movie selection.", show_alert=True)
-    
+        return await query.answer("𝐋𝐢𝐧𝐤 𝐄𝐱𝐩𝐢𝐫𝐞𝐝 𝐊𝐢𝐧𝐝𝐥𝐲 𝐏𝐥𝐞𝐚𝐬𝐞 𝐒𝐞𝐚𝐫𝐜𝐡 𝐀𝐠𝐚𝐢𝐧 🙂.", show_alert=True)
+    movie = movies[(int(movie_))]
     await query.answer('𝙸 𝙰𝙼 𝙲𝙷𝙴𝙲𝙺𝙸𝙽𝙶 𝙵𝙾𝚁 𝚃𝙷𝙴 𝙵𝙸𝙻𝙴 𝙾𝙽 𝙼𝚈 𝙳𝙰𝚃𝙰𝙱𝙰𝚂𝙴...⏳')
-    
-    try:
-        # Provide the 'query' argument if required by get_search_results
-        files, offset, total_results = await get_search_results(query.message.chat.id, search, offset=offset, filter=True)
-    except Exception as e:
-        await query.answer(f"Error occurred while searching: {e}", show_alert=True)
-        return
-    
+    files, offset, total_results = await get_search_results(query.message.chat.id, search, offset=offset, filter=True)
     if files:
         k = (movie, files, offset, total_results)
         await pm_AutoFilter(bot, query, k)
     else:
-        k = await query.message.edit('The file you are looking for is not available on my Database or might not be released yet.')
+        k = await query.message.edit('The file you are looking for is not available on my Database or might not be released yet 💌\n\nFirst of all, Read the pinned message and follow the instructions and examples I gave there.\n\nif its still unavailable, then Use @mcrequestbot to request for it. please make sure you follow the request format there or my owner will skip your request. Thank youuu 🥰')
         await asyncio.sleep(20)
         await k.delete()
 
