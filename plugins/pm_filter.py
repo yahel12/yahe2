@@ -294,7 +294,7 @@ async def pm_spoll_choker(client, msg):
     g_s += await search_gagala(msg.text)
     gs_parsed = []
     if not g_s:
-        k = await msg.reply("<b>💔 I couldn't find any movie in that name.</b>")
+        k = await msg.reply("<b>💔 I couldn't find any file in that name.</b>")
         await asyncio.sleep(8)
         await k.delete()
         return
@@ -330,12 +330,6 @@ async def pm_spoll_choker(client, msg):
     PM_SPELL_CHECK[msg.id] = movielist
     btn = [[InlineKeyboardButton(text=movie.strip(), callback_data=f"pmspolling#{user}#{k}")] for k, movie in enumerate(movielist)]
     btn.append([InlineKeyboardButton(text="Close", callback_data=f'pmspolling#{user}#close_spellcheck')])
-    
-    # Reply with the movie suggestions and the buttons
-    reply_msg = await msg.reply("<b>I couldn't find anything related to that</b>\n\n𝙸𝚏 𝚝𝚑𝚎 𝚏𝚒𝚕𝚎 𝚢𝚘𝚞 𝚠𝚊𝚗𝚝 𝚒𝚜 𝚝𝚑𝚎 𝚘𝚗𝚎 𝚋𝚎𝚕𝚘𝚠, 𝚌𝚕𝚒𝚌𝚔 𝚘𝚗 𝚒𝚝", reply_markup=InlineKeyboardMarkup(btn), reply_to_message_id=msg.id)
-    
-    # Wait for 30 seconds and then delete the message
-    await asyncio.sleep(30)
-    await reply_msg.delete()
+    await msg.reply("<b>I couldn't find anything related to that</b>\n\n𝙸𝚏 𝚝𝚑𝚎 𝚏𝚒𝚕𝚎 𝚢𝚘𝚞 𝚠𝚊𝚗𝚝 𝚒𝚜 𝚝𝚑𝚎 𝚘𝚗𝚎 𝚋𝚎𝚕𝚘𝚠, 𝚌𝚕𝚒𝚌𝚔 𝚘𝚗 𝚒𝚝", reply_markup=InlineKeyboardMarkup(btn), reply_to_message_id=msg.id)
 
 
