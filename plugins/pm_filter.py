@@ -36,20 +36,25 @@ async def auto_pm_fill(b, m):
 @Client.on_callback_query(filters.regex(r"^pmnext"))
 async def pm_next_page(bot, query):
     ident, req, key, offset = query.data.split("_")
+
+    # Answer the callback query immediately
+    await query.answer()
+
     if int(req) not in [query.from_user.id, 0]:
         return await query.answer(script.ALRT_TXT.format(query.from_user.first_name), show_alert=True)
-    
+
     try:
         offset = int(offset)
     except ValueError:
         offset = 0
-    
+
     search = BUTTONS.get(key)
     if not search:
         await query.answer(script.OLD_ALRT_TXT.format(query.from_user.first_name), show_alert=True)
         return
 
     files, n_offset, total = await get_search_results(query.message.chat.id, search, offset=offset, filter=True)
+
     try:
         n_offset = int(n_offset)
     except ValueError:
@@ -57,7 +62,7 @@ async def pm_next_page(bot, query):
 
     if not files:
         return
-    
+
     settings = await get_settings(query.message.chat.id)
 
     btn = [
@@ -79,12 +84,13 @@ async def pm_next_page(bot, query):
         ]
         for file in files
     ]
-    
+
     if settings.get('auto_delete', True):
         btn.insert(0, [InlineKeyboardButton(text="🔞 CLICK HERE FOR OUR ADULT CHANNEL", url='https://t.me/Adultship_films')])
-    
+
     max_btn = settings.get('max_btn', True)
     max_b_tn_value = int(MAX_B_TN) if max_btn else 10
+
     if 0 < offset <= max_b_tn_value:
         off_set = 0
     elif offset == 0:
@@ -95,7 +101,7 @@ async def pm_next_page(bot, query):
     if n_offset == 0:
         btn.append(
             [InlineKeyboardButton("«« 𝕻𝖗𝖊𝖛𝖎𝖔𝖚𝖘", callback_data=f"pmnext_{req}_{key}_{off_set}"),
-             InlineKeyboardButton(f"📑 ᴩᴀɢᴇꜱ {math.ceil(int(offset) / 10) + 1} / {math.ceil(total / 10)}", callback_data="pages")]                                  
+             InlineKeyboardButton(f"📑 ᴩᴀɢᴇꜱ {math.ceil(int(offset) / 10) + 1} / {math.ceil(total / 10)}", callback_data="pages")]
         )
     elif off_set is None:
         btn.append(
@@ -103,15 +109,16 @@ async def pm_next_page(bot, query):
              InlineKeyboardButton("𝕹𝖊𝖝𝖙 »»", callback_data=f"pmnext_{req}_{key}_{n_offset}")])
     else:
         btn.append([
-            InlineKeyboardButton("<<< 𝕻𝖗𝖊𝖛𝖎𝖔𝖚𝖘", callback_data=f"pmnext_{req}_{key}_{off_set}"),
+            InlineKeyboardButton("«« 𝕻𝖗𝖊𝖛𝖎𝖔𝖚𝖘", callback_data=f"pmnext_{req}_{key}_{off_set}"),
             InlineKeyboardButton(f"📑 {math.ceil(int(offset) / 10) + 1} / {math.ceil(total / 10)}", callback_data="pages"),
-            InlineKeyboardButton("𝕹𝖊𝖝𝖙 >>>", callback_data=f"pmnext_{req}_{key}_{n_offset}")
+            InlineKeyboardButton("𝕹𝖊𝖝𝖙 »»", callback_data=f"pmnext_{req}_{key}_{n_offset}")
         ])
+
     try:
         await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(btn))
     except MessageNotModified:
         pass
-    await query.answer()
+
 
 @Client.on_callback_query(filters.create(lambda _, __, query: query.data.startswith("pmspolling")))
 async def pm_spoll_tester(bot, query):
