@@ -1,18 +1,30 @@
-FROM python:3.10.9-slim
+# Use the official Python 3.10.9 slim-buster image
+FROM python:3.10.9-slim-buster
 
-# Update and install dependencies
-RUN apt update && apt upgrade -y && \
-    apt install git -y
+# Update the package list and upgrade all packages
+RUN apt update && apt upgrade -y
 
-# Set work directory
-WORKDIR /app
+# Install git
+RUN apt install git -y
 
-# Copy and install requirements
-COPY requirements.txt requirements.txt
-RUN pip install -U pip && pip install -U -r requirements.txt
+# Copy the requirements file into the container
+COPY requirements.txt /requirements.txt
 
-# Copy the rest of the application
-COPY . .
+# Upgrade pip and install the required Python packages
+RUN pip3 install -U pip && pip3 install -U -r /requirements.txt
 
-# Set the entrypoint
-CMD ["python", "bot.py"]
+# Create a directory for the application
+RUN mkdir /hey_tess
+
+# Set the working directory
+WORKDIR /hey_tess
+
+# Copy the start script into the container
+COPY start.sh /start.sh
+
+# Expose the necessary port (e.g., 8000, adjust as needed)
+# This fixes the issue by making the port available to Docker
+EXPOSE 8080
+
+# Set the default command to run the start script
+CMD ["/bin/bash", "/start.sh"]
